@@ -1,0 +1,25 @@
+LOAD_MS 204.9 rss_mb=43.1 footprint_mb=30.4 peak_rss_mb=43.1
+LAT ultra clean/u01.wav dur_s=3.06 first_ms=94.2 median5_ms=63.8 min_ms=61.2 max_ms=64.6 rtfx=48.0
+LAT ultra clean/u19.wav dur_s=14.44 first_ms=136.3 median5_ms=123.6 min_ms=122.4 max_ms=140.7 rtfx=116.8
+LAT ultra s1/clip30.wav dur_s=27.98 first_ms=297.3 median5_ms=382.7 min_ms=280.2 max_ms=397.3 rtfx=73.1
+LAT ultra s1/clip60.wav dur_s=57.09 first_ms=518.6 median5_ms=538.4 min_ms=519.5 max_ms=546.8 rtfx=106.0
+HYPS Spikes/S1b-models/results/raw/hyps_ultra.jsonl n=92
+MEM_END rss_mb=230.6 footprint_mb=99.3 peak_rss_mb=230.6
+       17.13 real        24.74 user         8.85 sys
+           241844224  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               70206  page reclaims
+                 290  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 286  voluntary context switches
+              266617  involuntary context switches
+         77256944001  instructions retired
+         71134772636  cycles elapsed
+           127648632  peak memory footprint

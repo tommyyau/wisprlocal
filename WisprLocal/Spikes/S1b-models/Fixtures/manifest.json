@@ -1,0 +1,1144 @@
+[
+ {
+  "id": "clip05",
+  "file": "s1/clip05.wav",
+  "ref": "Please open Wispr Flow, then connect my laptop to the Tailscale network.",
+  "jargon": [
+   "Wispr Flow",
+   "Tailscale"
+  ],
+  "cond": "clean",
+  "voice": "Samantha",
+  "set": "s1",
+  "dur": 4.35
+ },
+ {
+  "id": "clip30",
+  "file": "s1/clip30.wav",
+  "ref": "Good morning team. Yesterday we migrated the staging cluster to Kubernetes version one point thirty, and everything came back healthy after about twenty minutes. The only hiccup was that two nodes lost their Tailscale connection, so Priya restarted the daemon and they rejoined the mesh. Today I want to finish the Wispr Flow dictation prototype, write the release notes, and review the Grafana dashboards with Marcus before lunch. After that, let's sync on the Postgres upgrade and the on-call rotation.",
+  "jargon": [
+   "Wispr Flow",
+   "Tailscale",
+   "Kubernetes",
+   "Grafana",
+   "Postgres",
+   "Priya",
+   "Marcus"
+  ],
+  "cond": "clean",
+  "voice": "Samantha",
+  "set": "s1",
+  "dur": 27.98
+ },
+ {
+  "id": "clip60",
+  "file": "s1/clip60.wav",
+  "ref": "Here is the plan for the rest of the quarter. First, we are moving every internal service onto Kubernetes, with Helm charts stored in the platform repository and Argo CD handling deployments. Second, remote access will go through Tailscale instead of the old VPN, which means each laptop needs the client installed and approved by an administrator. Third, the product team is shipping a native Mac dictation app inspired by Wispr Flow. It runs Parakeet speech recognition locally on the Neural Engine, so audio never leaves the device, and it pastes the cleaned up text into whatever application has focus. Sarah Chen owns the audio pipeline, Diego Alvarez owns the settings window, and I will handle accessibility permissions and the global hotkey. We should have a beta ready for internal testing by the fifteenth of November, and a public release shortly after Thanksgiving if the crash rate stays below one percent. Questions go in the Slack channel, and please flag anything blocking by Friday.",
+  "jargon": [
+   "Wispr Flow",
+   "Tailscale",
+   "Kubernetes",
+   "Helm",
+   "Argo CD",
+   "Parakeet",
+   "Sarah Chen",
+   "Diego Alvarez",
+   "Slack"
+  ],
+  "cond": "clean",
+  "voice": "Samantha",
+  "set": "s1",
+  "dur": 57.09
+ },
+ {
+  "id": "u01",
+  "file": "clean/u01.wav",
+  "ref": "Open Wispr Flow and start a new dictation session.",
+  "jargon": [
+   "Wispr Flow"
+  ],
+  "cond": "clean",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 3.06
+ },
+ {
+  "id": "u01_tv10",
+  "file": "noisy/u01_tv10.wav",
+  "ref": "Open Wispr Flow and start a new dictation session.",
+  "jargon": [
+   "Wispr Flow"
+  ],
+  "cond": "tv10",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 4.06
+ },
+ {
+  "id": "u01_tv6",
+  "file": "noisy/u01_tv6.wav",
+  "ref": "Open Wispr Flow and start a new dictation session.",
+  "jargon": [
+   "Wispr Flow"
+  ],
+  "cond": "tv6",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 4.06
+ },
+ {
+  "id": "u01_music10",
+  "file": "noisy/u01_music10.wav",
+  "ref": "Open Wispr Flow and start a new dictation session.",
+  "jargon": [
+   "Wispr Flow"
+  ],
+  "cond": "music10",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 4.06
+ },
+ {
+  "id": "u02",
+  "file": "clean/u02.wav",
+  "ref": "Can you check whether the Tailscale node in Frankfurt is still online?",
+  "jargon": [
+   "Tailscale"
+  ],
+  "cond": "clean",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 3.65
+ },
+ {
+  "id": "u02_tv10",
+  "file": "noisy/u02_tv10.wav",
+  "ref": "Can you check whether the Tailscale node in Frankfurt is still online?",
+  "jargon": [
+   "Tailscale"
+  ],
+  "cond": "tv10",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 4.65
+ },
+ {
+  "id": "u02_tv6",
+  "file": "noisy/u02_tv6.wav",
+  "ref": "Can you check whether the Tailscale node in Frankfurt is still online?",
+  "jargon": [
+   "Tailscale"
+  ],
+  "cond": "tv6",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 4.65
+ },
+ {
+  "id": "u02_music10",
+  "file": "noisy/u02_music10.wav",
+  "ref": "Can you check whether the Tailscale node in Frankfurt is still online?",
+  "jargon": [
+   "Tailscale"
+  ],
+  "cond": "music10",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 4.65
+ },
+ {
+  "id": "u03",
+  "file": "clean/u03.wav",
+  "ref": "The Kubernetes cluster has twelve pods stuck in a crash loop.",
+  "jargon": [
+   "Kubernetes"
+  ],
+  "cond": "clean",
+  "voice": "Karen",
+  "set": "utt",
+  "dur": 3.25
+ },
+ {
+  "id": "u03_tv10",
+  "file": "noisy/u03_tv10.wav",
+  "ref": "The Kubernetes cluster has twelve pods stuck in a crash loop.",
+  "jargon": [
+   "Kubernetes"
+  ],
+  "cond": "tv10",
+  "voice": "Karen",
+  "set": "utt",
+  "dur": 4.25
+ },
+ {
+  "id": "u03_tv6",
+  "file": "noisy/u03_tv6.wav",
+  "ref": "The Kubernetes cluster has twelve pods stuck in a crash loop.",
+  "jargon": [
+   "Kubernetes"
+  ],
+  "cond": "tv6",
+  "voice": "Karen",
+  "set": "utt",
+  "dur": 4.25
+ },
+ {
+  "id": "u03_music10",
+  "file": "noisy/u03_music10.wav",
+  "ref": "The Kubernetes cluster has twelve pods stuck in a crash loop.",
+  "jargon": [
+   "Kubernetes"
+  ],
+  "cond": "music10",
+  "voice": "Karen",
+  "set": "utt",
+  "dur": 4.25
+ },
+ {
+  "id": "u04",
+  "file": "clean/u04.wav",
+  "ref": "Please send the Grafana dashboard link to Priya before the stand-up.",
+  "jargon": [
+   "Grafana",
+   "Priya"
+  ],
+  "cond": "clean",
+  "voice": "Moira",
+  "set": "utt",
+  "dur": 3.68
+ },
+ {
+  "id": "u04_tv10",
+  "file": "noisy/u04_tv10.wav",
+  "ref": "Please send the Grafana dashboard link to Priya before the stand-up.",
+  "jargon": [
+   "Grafana",
+   "Priya"
+  ],
+  "cond": "tv10",
+  "voice": "Moira",
+  "set": "utt",
+  "dur": 4.68
+ },
+ {
+  "id": "u04_tv6",
+  "file": "noisy/u04_tv6.wav",
+  "ref": "Please send the Grafana dashboard link to Priya before the stand-up.",
+  "jargon": [
+   "Grafana",
+   "Priya"
+  ],
+  "cond": "tv6",
+  "voice": "Moira",
+  "set": "utt",
+  "dur": 4.68
+ },
+ {
+  "id": "u04_music10",
+  "file": "noisy/u04_music10.wav",
+  "ref": "Please send the Grafana dashboard link to Priya before the stand-up.",
+  "jargon": [
+   "Grafana",
+   "Priya"
+  ],
+  "cond": "music10",
+  "voice": "Moira",
+  "set": "utt",
+  "dur": 4.68
+ },
+ {
+  "id": "u05",
+  "file": "clean/u05.wav",
+  "ref": "My email address is alex@example.com, please reply by Friday.",
+  "jargon": [
+   "alex@example.com"
+  ],
+  "cond": "clean",
+  "voice": "Rishi",
+  "set": "utt",
+  "dur": 7.01
+ },
+ {
+  "id": "u05_tv10",
+  "file": "noisy/u05_tv10.wav",
+  "ref": "My email address is alex@example.com, please reply by Friday.",
+  "jargon": [
+   "alex@example.com"
+  ],
+  "cond": "tv10",
+  "voice": "Rishi",
+  "set": "utt",
+  "dur": 8.01
+ },
+ {
+  "id": "u05_tv6",
+  "file": "noisy/u05_tv6.wav",
+  "ref": "My email address is alex@example.com, please reply by Friday.",
+  "jargon": [
+   "alex@example.com"
+  ],
+  "cond": "tv6",
+  "voice": "Rishi",
+  "set": "utt",
+  "dur": 8.01
+ },
+ {
+  "id": "u05_music10",
+  "file": "noisy/u05_music10.wav",
+  "ref": "My email address is alex@example.com, please reply by Friday.",
+  "jargon": [
+   "alex@example.com"
+  ],
+  "cond": "music10",
+  "voice": "Rishi",
+  "set": "utt",
+  "dur": 8.01
+ },
+ {
+  "id": "u06",
+  "file": "clean/u06.wav",
+  "ref": "Schedule a call with Sarah Chen and Diego Alvarez for half past three tomorrow.",
+  "jargon": [
+   "Sarah Chen",
+   "Diego Alvarez"
+  ],
+  "cond": "clean",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 4.62
+ },
+ {
+  "id": "u06_tv10",
+  "file": "noisy/u06_tv10.wav",
+  "ref": "Schedule a call with Sarah Chen and Diego Alvarez for half past three tomorrow.",
+  "jargon": [
+   "Sarah Chen",
+   "Diego Alvarez"
+  ],
+  "cond": "tv10",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 5.62
+ },
+ {
+  "id": "u06_tv6",
+  "file": "noisy/u06_tv6.wav",
+  "ref": "Schedule a call with Sarah Chen and Diego Alvarez for half past three tomorrow.",
+  "jargon": [
+   "Sarah Chen",
+   "Diego Alvarez"
+  ],
+  "cond": "tv6",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 5.62
+ },
+ {
+  "id": "u06_music10",
+  "file": "noisy/u06_music10.wav",
+  "ref": "Schedule a call with Sarah Chen and Diego Alvarez for half past three tomorrow.",
+  "jargon": [
+   "Sarah Chen",
+   "Diego Alvarez"
+  ],
+  "cond": "music10",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 5.62
+ },
+ {
+  "id": "u07",
+  "file": "clean/u07.wav",
+  "ref": "Restart the Grafana agent, then tail the logs on the Kubernetes control plane.",
+  "jargon": [
+   "Grafana",
+   "Kubernetes"
+  ],
+  "cond": "clean",
+  "voice": "Tessa",
+  "set": "utt",
+  "dur": 5.16
+ },
+ {
+  "id": "u07_tv10",
+  "file": "noisy/u07_tv10.wav",
+  "ref": "Restart the Grafana agent, then tail the logs on the Kubernetes control plane.",
+  "jargon": [
+   "Grafana",
+   "Kubernetes"
+  ],
+  "cond": "tv10",
+  "voice": "Tessa",
+  "set": "utt",
+  "dur": 6.16
+ },
+ {
+  "id": "u07_tv6",
+  "file": "noisy/u07_tv6.wav",
+  "ref": "Restart the Grafana agent, then tail the logs on the Kubernetes control plane.",
+  "jargon": [
+   "Grafana",
+   "Kubernetes"
+  ],
+  "cond": "tv6",
+  "voice": "Tessa",
+  "set": "utt",
+  "dur": 6.16
+ },
+ {
+  "id": "u07_music10",
+  "file": "noisy/u07_music10.wav",
+  "ref": "Restart the Grafana agent, then tail the logs on the Kubernetes control plane.",
+  "jargon": [
+   "Grafana",
+   "Kubernetes"
+  ],
+  "cond": "music10",
+  "voice": "Tessa",
+  "set": "utt",
+  "dur": 6.16
+ },
+ {
+  "id": "u08",
+  "file": "clean/u08.wav",
+  "ref": "I've pushed the fix to the main branch, the build should take about 4 minutes.",
+  "jargon": [],
+  "cond": "clean",
+  "voice": "Flo (English (UK))",
+  "set": "utt",
+  "dur": 4.86
+ },
+ {
+  "id": "u08_tv10",
+  "file": "noisy/u08_tv10.wav",
+  "ref": "I've pushed the fix to the main branch, the build should take about 4 minutes.",
+  "jargon": [],
+  "cond": "tv10",
+  "voice": "Flo (English (UK))",
+  "set": "utt",
+  "dur": 5.86
+ },
+ {
+  "id": "u08_tv6",
+  "file": "noisy/u08_tv6.wav",
+  "ref": "I've pushed the fix to the main branch, the build should take about 4 minutes.",
+  "jargon": [],
+  "cond": "tv6",
+  "voice": "Flo (English (UK))",
+  "set": "utt",
+  "dur": 5.86
+ },
+ {
+  "id": "u08_music10",
+  "file": "noisy/u08_music10.wav",
+  "ref": "I've pushed the fix to the main branch, the build should take about 4 minutes.",
+  "jargon": [],
+  "cond": "music10",
+  "voice": "Flo (English (UK))",
+  "set": "utt",
+  "dur": 5.86
+ },
+ {
+  "id": "u09",
+  "file": "clean/u09.wav",
+  "ref": "Remind me to renew the Tailscale licence on the 3rd of March.",
+  "jargon": [
+   "Tailscale"
+  ],
+  "cond": "clean",
+  "voice": "Eddy (English (UK))",
+  "set": "utt",
+  "dur": 4.05
+ },
+ {
+  "id": "u09_tv10",
+  "file": "noisy/u09_tv10.wav",
+  "ref": "Remind me to renew the Tailscale licence on the 3rd of March.",
+  "jargon": [
+   "Tailscale"
+  ],
+  "cond": "tv10",
+  "voice": "Eddy (English (UK))",
+  "set": "utt",
+  "dur": 5.05
+ },
+ {
+  "id": "u09_tv6",
+  "file": "noisy/u09_tv6.wav",
+  "ref": "Remind me to renew the Tailscale licence on the 3rd of March.",
+  "jargon": [
+   "Tailscale"
+  ],
+  "cond": "tv6",
+  "voice": "Eddy (English (UK))",
+  "set": "utt",
+  "dur": 5.05
+ },
+ {
+  "id": "u09_music10",
+  "file": "noisy/u09_music10.wav",
+  "ref": "Remind me to renew the Tailscale licence on the 3rd of March.",
+  "jargon": [
+   "Tailscale"
+  ],
+  "cond": "music10",
+  "voice": "Eddy (English (UK))",
+  "set": "utt",
+  "dur": 5.05
+ },
+ {
+  "id": "u10",
+  "file": "clean/u10.wav",
+  "ref": "Wispr Flow costs $15 a month, but this app runs entirely offline.",
+  "jargon": [
+   "Wispr Flow"
+  ],
+  "cond": "clean",
+  "voice": "Reed (English (UK))",
+  "set": "utt",
+  "dur": 5.28
+ },
+ {
+  "id": "u10_tv10",
+  "file": "noisy/u10_tv10.wav",
+  "ref": "Wispr Flow costs $15 a month, but this app runs entirely offline.",
+  "jargon": [
+   "Wispr Flow"
+  ],
+  "cond": "tv10",
+  "voice": "Reed (English (UK))",
+  "set": "utt",
+  "dur": 6.28
+ },
+ {
+  "id": "u10_tv6",
+  "file": "noisy/u10_tv6.wav",
+  "ref": "Wispr Flow costs $15 a month, but this app runs entirely offline.",
+  "jargon": [
+   "Wispr Flow"
+  ],
+  "cond": "tv6",
+  "voice": "Reed (English (UK))",
+  "set": "utt",
+  "dur": 6.28
+ },
+ {
+  "id": "u10_music10",
+  "file": "noisy/u10_music10.wav",
+  "ref": "Wispr Flow costs $15 a month, but this app runs entirely offline.",
+  "jargon": [
+   "Wispr Flow"
+  ],
+  "cond": "music10",
+  "voice": "Reed (English (UK))",
+  "set": "utt",
+  "dur": 6.28
+ },
+ {
+  "id": "u11",
+  "file": "clean/u11.wav",
+  "ref": "Set the Grafana alert threshold to 85 percent CPU for 10 minutes.",
+  "jargon": [
+   "Grafana"
+  ],
+  "cond": "clean",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 4.43
+ },
+ {
+  "id": "u11_tv10",
+  "file": "noisy/u11_tv10.wav",
+  "ref": "Set the Grafana alert threshold to 85 percent CPU for 10 minutes.",
+  "jargon": [
+   "Grafana"
+  ],
+  "cond": "tv10",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 5.43
+ },
+ {
+  "id": "u11_tv6",
+  "file": "noisy/u11_tv6.wav",
+  "ref": "Set the Grafana alert threshold to 85 percent CPU for 10 minutes.",
+  "jargon": [
+   "Grafana"
+  ],
+  "cond": "tv6",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 5.43
+ },
+ {
+  "id": "u11_music10",
+  "file": "noisy/u11_music10.wav",
+  "ref": "Set the Grafana alert threshold to 85 percent CPU for 10 minutes.",
+  "jargon": [
+   "Grafana"
+  ],
+  "cond": "music10",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 5.43
+ },
+ {
+  "id": "u12",
+  "file": "clean/u12.wav",
+  "ref": "Forward the invoice to accounts@example.org and copy in Marcus.",
+  "jargon": [
+   "accounts@example.org",
+   "Marcus"
+  ],
+  "cond": "clean",
+  "voice": "Shelley (English (UK))",
+  "set": "utt",
+  "dur": 5.15
+ },
+ {
+  "id": "u12_tv10",
+  "file": "noisy/u12_tv10.wav",
+  "ref": "Forward the invoice to accounts@example.org and copy in Marcus.",
+  "jargon": [
+   "accounts@example.org",
+   "Marcus"
+  ],
+  "cond": "tv10",
+  "voice": "Shelley (English (UK))",
+  "set": "utt",
+  "dur": 6.15
+ },
+ {
+  "id": "u12_tv6",
+  "file": "noisy/u12_tv6.wav",
+  "ref": "Forward the invoice to accounts@example.org and copy in Marcus.",
+  "jargon": [
+   "accounts@example.org",
+   "Marcus"
+  ],
+  "cond": "tv6",
+  "voice": "Shelley (English (UK))",
+  "set": "utt",
+  "dur": 6.15
+ },
+ {
+  "id": "u12_music10",
+  "file": "noisy/u12_music10.wav",
+  "ref": "Forward the invoice to accounts@example.org and copy in Marcus.",
+  "jargon": [
+   "accounts@example.org",
+   "Marcus"
+  ],
+  "cond": "music10",
+  "voice": "Shelley (English (UK))",
+  "set": "utt",
+  "dur": 6.15
+ },
+ {
+  "id": "u13",
+  "file": "clean/u13.wav",
+  "ref": "The Kubernetes upgrade to version 1.31 is scheduled for the 14th of November.",
+  "jargon": [
+   "Kubernetes"
+  ],
+  "cond": "clean",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 5.01
+ },
+ {
+  "id": "u13_tv10",
+  "file": "noisy/u13_tv10.wav",
+  "ref": "The Kubernetes upgrade to version 1.31 is scheduled for the 14th of November.",
+  "jargon": [
+   "Kubernetes"
+  ],
+  "cond": "tv10",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 6.01
+ },
+ {
+  "id": "u13_tv6",
+  "file": "noisy/u13_tv6.wav",
+  "ref": "The Kubernetes upgrade to version 1.31 is scheduled for the 14th of November.",
+  "jargon": [
+   "Kubernetes"
+  ],
+  "cond": "tv6",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 6.01
+ },
+ {
+  "id": "u13_music10",
+  "file": "noisy/u13_music10.wav",
+  "ref": "The Kubernetes upgrade to version 1.31 is scheduled for the 14th of November.",
+  "jargon": [
+   "Kubernetes"
+  ],
+  "cond": "music10",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 6.01
+ },
+ {
+  "id": "u14",
+  "file": "clean/u14.wav",
+  "ref": "Tell Marcus that the Tailscale exit node in Dublin is back up.",
+  "jargon": [
+   "Marcus",
+   "Tailscale"
+  ],
+  "cond": "clean",
+  "voice": "Moira",
+  "set": "utt",
+  "dur": 3.68
+ },
+ {
+  "id": "u14_tv10",
+  "file": "noisy/u14_tv10.wav",
+  "ref": "Tell Marcus that the Tailscale exit node in Dublin is back up.",
+  "jargon": [
+   "Marcus",
+   "Tailscale"
+  ],
+  "cond": "tv10",
+  "voice": "Moira",
+  "set": "utt",
+  "dur": 4.68
+ },
+ {
+  "id": "u14_tv6",
+  "file": "noisy/u14_tv6.wav",
+  "ref": "Tell Marcus that the Tailscale exit node in Dublin is back up.",
+  "jargon": [
+   "Marcus",
+   "Tailscale"
+  ],
+  "cond": "tv6",
+  "voice": "Moira",
+  "set": "utt",
+  "dur": 4.68
+ },
+ {
+  "id": "u14_music10",
+  "file": "noisy/u14_music10.wav",
+  "ref": "Tell Marcus that the Tailscale exit node in Dublin is back up.",
+  "jargon": [
+   "Marcus",
+   "Tailscale"
+  ],
+  "cond": "music10",
+  "voice": "Moira",
+  "set": "utt",
+  "dur": 4.68
+ },
+ {
+  "id": "u15",
+  "file": "clean/u15.wav",
+  "ref": "Grafana shows a latency spike of 250 milliseconds on the checkout service.",
+  "jargon": [
+   "Grafana"
+  ],
+  "cond": "clean",
+  "voice": "Rishi",
+  "set": "utt",
+  "dur": 5.41
+ },
+ {
+  "id": "u15_tv10",
+  "file": "noisy/u15_tv10.wav",
+  "ref": "Grafana shows a latency spike of 250 milliseconds on the checkout service.",
+  "jargon": [
+   "Grafana"
+  ],
+  "cond": "tv10",
+  "voice": "Rishi",
+  "set": "utt",
+  "dur": 6.41
+ },
+ {
+  "id": "u15_tv6",
+  "file": "noisy/u15_tv6.wav",
+  "ref": "Grafana shows a latency spike of 250 milliseconds on the checkout service.",
+  "jargon": [
+   "Grafana"
+  ],
+  "cond": "tv6",
+  "voice": "Rishi",
+  "set": "utt",
+  "dur": 6.41
+ },
+ {
+  "id": "u15_music10",
+  "file": "noisy/u15_music10.wav",
+  "ref": "Grafana shows a latency spike of 250 milliseconds on the checkout service.",
+  "jargon": [
+   "Grafana"
+  ],
+  "cond": "music10",
+  "voice": "Rishi",
+  "set": "utt",
+  "dur": 6.41
+ },
+ {
+  "id": "u16",
+  "file": "clean/u16.wav",
+  "ref": "Turn on Wispr Flow, dictate the notes, and paste them into Slack.",
+  "jargon": [
+   "Wispr Flow",
+   "Slack"
+  ],
+  "cond": "clean",
+  "voice": "Karen",
+  "set": "utt",
+  "dur": 4.27
+ },
+ {
+  "id": "u16_tv10",
+  "file": "noisy/u16_tv10.wav",
+  "ref": "Turn on Wispr Flow, dictate the notes, and paste them into Slack.",
+  "jargon": [
+   "Wispr Flow",
+   "Slack"
+  ],
+  "cond": "tv10",
+  "voice": "Karen",
+  "set": "utt",
+  "dur": 5.27
+ },
+ {
+  "id": "u16_tv6",
+  "file": "noisy/u16_tv6.wav",
+  "ref": "Turn on Wispr Flow, dictate the notes, and paste them into Slack.",
+  "jargon": [
+   "Wispr Flow",
+   "Slack"
+  ],
+  "cond": "tv6",
+  "voice": "Karen",
+  "set": "utt",
+  "dur": 5.27
+ },
+ {
+  "id": "u16_music10",
+  "file": "noisy/u16_music10.wav",
+  "ref": "Turn on Wispr Flow, dictate the notes, and paste them into Slack.",
+  "jargon": [
+   "Wispr Flow",
+   "Slack"
+  ],
+  "cond": "music10",
+  "voice": "Karen",
+  "set": "utt",
+  "dur": 5.27
+ },
+ {
+  "id": "u17",
+  "file": "clean/u17.wav",
+  "ref": "Book a table for 6 people at 7:30 on Saturday evening.",
+  "jargon": [],
+  "cond": "clean",
+  "voice": "Tessa",
+  "set": "utt",
+  "dur": 4.13
+ },
+ {
+  "id": "u17_tv10",
+  "file": "noisy/u17_tv10.wav",
+  "ref": "Book a table for 6 people at 7:30 on Saturday evening.",
+  "jargon": [],
+  "cond": "tv10",
+  "voice": "Tessa",
+  "set": "utt",
+  "dur": 5.13
+ },
+ {
+  "id": "u17_tv6",
+  "file": "noisy/u17_tv6.wav",
+  "ref": "Book a table for 6 people at 7:30 on Saturday evening.",
+  "jargon": [],
+  "cond": "tv6",
+  "voice": "Tessa",
+  "set": "utt",
+  "dur": 5.13
+ },
+ {
+  "id": "u17_music10",
+  "file": "noisy/u17_music10.wav",
+  "ref": "Book a table for 6 people at 7:30 on Saturday evening.",
+  "jargon": [],
+  "cond": "music10",
+  "voice": "Tessa",
+  "set": "utt",
+  "dur": 5.13
+ },
+ {
+  "id": "u18",
+  "file": "clean/u18.wav",
+  "ref": "Sarah Chen approved the pull request, so we can deploy to Kubernetes this afternoon.",
+  "jargon": [
+   "Sarah Chen",
+   "Kubernetes"
+  ],
+  "cond": "clean",
+  "voice": "Eddy (English (UK))",
+  "set": "utt",
+  "dur": 5.73
+ },
+ {
+  "id": "u18_tv10",
+  "file": "noisy/u18_tv10.wav",
+  "ref": "Sarah Chen approved the pull request, so we can deploy to Kubernetes this afternoon.",
+  "jargon": [
+   "Sarah Chen",
+   "Kubernetes"
+  ],
+  "cond": "tv10",
+  "voice": "Eddy (English (UK))",
+  "set": "utt",
+  "dur": 6.73
+ },
+ {
+  "id": "u18_tv6",
+  "file": "noisy/u18_tv6.wav",
+  "ref": "Sarah Chen approved the pull request, so we can deploy to Kubernetes this afternoon.",
+  "jargon": [
+   "Sarah Chen",
+   "Kubernetes"
+  ],
+  "cond": "tv6",
+  "voice": "Eddy (English (UK))",
+  "set": "utt",
+  "dur": 6.73
+ },
+ {
+  "id": "u18_music10",
+  "file": "noisy/u18_music10.wav",
+  "ref": "Sarah Chen approved the pull request, so we can deploy to Kubernetes this afternoon.",
+  "jargon": [
+   "Sarah Chen",
+   "Kubernetes"
+  ],
+  "cond": "music10",
+  "voice": "Eddy (English (UK))",
+  "set": "utt",
+  "dur": 6.73
+ },
+ {
+  "id": "u19",
+  "file": "clean/u19.wav",
+  "ref": "Quick update for the team. The Tailscale rollout is finished, Grafana alerts are routed to the on-call channel, and the Kubernetes migration is about eighty percent done. I'll send a full summary to everyone@example.com by Thursday.",
+  "jargon": [
+   "Tailscale",
+   "Grafana",
+   "Kubernetes",
+   "everyone@example.com"
+  ],
+  "cond": "clean",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 14.44
+ },
+ {
+  "id": "u19_tv10",
+  "file": "noisy/u19_tv10.wav",
+  "ref": "Quick update for the team. The Tailscale rollout is finished, Grafana alerts are routed to the on-call channel, and the Kubernetes migration is about eighty percent done. I'll send a full summary to everyone@example.com by Thursday.",
+  "jargon": [
+   "Tailscale",
+   "Grafana",
+   "Kubernetes",
+   "everyone@example.com"
+  ],
+  "cond": "tv10",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 15.44
+ },
+ {
+  "id": "u19_tv6",
+  "file": "noisy/u19_tv6.wav",
+  "ref": "Quick update for the team. The Tailscale rollout is finished, Grafana alerts are routed to the on-call channel, and the Kubernetes migration is about eighty percent done. I'll send a full summary to everyone@example.com by Thursday.",
+  "jargon": [
+   "Tailscale",
+   "Grafana",
+   "Kubernetes",
+   "everyone@example.com"
+  ],
+  "cond": "tv6",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 15.44
+ },
+ {
+  "id": "u19_music10",
+  "file": "noisy/u19_music10.wav",
+  "ref": "Quick update for the team. The Tailscale rollout is finished, Grafana alerts are routed to the on-call channel, and the Kubernetes migration is about eighty percent done. I'll send a full summary to everyone@example.com by Thursday.",
+  "jargon": [
+   "Tailscale",
+   "Grafana",
+   "Kubernetes",
+   "everyone@example.com"
+  ],
+  "cond": "music10",
+  "voice": "Samantha",
+  "set": "utt",
+  "dur": 15.44
+ },
+ {
+  "id": "u20",
+  "file": "clean/u20.wav",
+  "ref": "Draft an email to Nikolai saying the Wispr Flow prototype now transcribes offline in under a hundred milliseconds, and ask whether he can test it on his MacBook Pro next week.",
+  "jargon": [
+   "Nikolai",
+   "Wispr Flow"
+  ],
+  "cond": "clean",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 10.15
+ },
+ {
+  "id": "u20_tv10",
+  "file": "noisy/u20_tv10.wav",
+  "ref": "Draft an email to Nikolai saying the Wispr Flow prototype now transcribes offline in under a hundred milliseconds, and ask whether he can test it on his MacBook Pro next week.",
+  "jargon": [
+   "Nikolai",
+   "Wispr Flow"
+  ],
+  "cond": "tv10",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 11.15
+ },
+ {
+  "id": "u20_tv6",
+  "file": "noisy/u20_tv6.wav",
+  "ref": "Draft an email to Nikolai saying the Wispr Flow prototype now transcribes offline in under a hundred milliseconds, and ask whether he can test it on his MacBook Pro next week.",
+  "jargon": [
+   "Nikolai",
+   "Wispr Flow"
+  ],
+  "cond": "tv6",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 11.15
+ },
+ {
+  "id": "u20_music10",
+  "file": "noisy/u20_music10.wav",
+  "ref": "Draft an email to Nikolai saying the Wispr Flow prototype now transcribes offline in under a hundred milliseconds, and ask whether he can test it on his MacBook Pro next week.",
+  "jargon": [
+   "Nikolai",
+   "Wispr Flow"
+  ],
+  "cond": "music10",
+  "voice": "Daniel",
+  "set": "utt",
+  "dur": 11.15
+ },
+ {
+  "id": "u21",
+  "file": "clean/u21.wav",
+  "ref": "Honestly, I think we should just ship it on Monday and fix the small bugs afterwards.",
+  "jargon": [],
+  "cond": "clean",
+  "voice": "Flo (English (UK))",
+  "set": "utt",
+  "dur": 5.52
+ },
+ {
+  "id": "u21_tv10",
+  "file": "noisy/u21_tv10.wav",
+  "ref": "Honestly, I think we should just ship it on Monday and fix the small bugs afterwards.",
+  "jargon": [],
+  "cond": "tv10",
+  "voice": "Flo (English (UK))",
+  "set": "utt",
+  "dur": 6.52
+ },
+ {
+  "id": "u21_tv6",
+  "file": "noisy/u21_tv6.wav",
+  "ref": "Honestly, I think we should just ship it on Monday and fix the small bugs afterwards.",
+  "jargon": [],
+  "cond": "tv6",
+  "voice": "Flo (English (UK))",
+  "set": "utt",
+  "dur": 6.52
+ },
+ {
+  "id": "u21_music10",
+  "file": "noisy/u21_music10.wav",
+  "ref": "Honestly, I think we should just ship it on Monday and fix the small bugs afterwards.",
+  "jargon": [],
+  "cond": "music10",
+  "voice": "Flo (English (UK))",
+  "set": "utt",
+  "dur": 6.52
+ },
+ {
+  "id": "u22",
+  "file": "clean/u22.wav",
+  "ref": "What's the weather going to be like in Manchester this weekend?",
+  "jargon": [
+   "Manchester"
+  ],
+  "cond": "clean",
+  "voice": "Reed (English (UK))",
+  "set": "utt",
+  "dur": 3.81
+ },
+ {
+  "id": "u22_tv10",
+  "file": "noisy/u22_tv10.wav",
+  "ref": "What's the weather going to be like in Manchester this weekend?",
+  "jargon": [
+   "Manchester"
+  ],
+  "cond": "tv10",
+  "voice": "Reed (English (UK))",
+  "set": "utt",
+  "dur": 4.81
+ },
+ {
+  "id": "u22_tv6",
+  "file": "noisy/u22_tv6.wav",
+  "ref": "What's the weather going to be like in Manchester this weekend?",
+  "jargon": [
+   "Manchester"
+  ],
+  "cond": "tv6",
+  "voice": "Reed (English (UK))",
+  "set": "utt",
+  "dur": 4.81
+ },
+ {
+  "id": "u22_music10",
+  "file": "noisy/u22_music10.wav",
+  "ref": "What's the weather going to be like in Manchester this weekend?",
+  "jargon": [
+   "Manchester"
+  ],
+  "cond": "music10",
+  "voice": "Reed (English (UK))",
+  "set": "utt",
+  "dur": 4.81
+ },
+ {
+  "id": "long4m",
+  "file": "clean/long4m.wav",
+  "ref": "Here is the plan for the rest of the quarter. First, we are moving every internal service onto Kubernetes, with Helm charts stored in the platform repository and Argo CD handling deployments. Second, remote access will go through Tailscale instead of the old VPN, which means each laptop needs the client installed and approved by an administrator. Third, the product team is shipping a native Mac dictation app inspired by Wispr Flow. It runs Parakeet speech recognition locally on the Neural Engine, so audio never leaves the device, and it pastes the cleaned up text into whatever application has focus. Sarah Chen owns the audio pipeline, Diego Alvarez owns the settings window, and I will handle accessibility permissions and the global hotkey. We should have a beta ready for internal testing by the fifteenth of November, and a public release shortly after Thanksgiving if the crash rate stays below one percent. Questions go in the Slack channel, and please flag anything blocking by Friday. Good morning team. Yesterday we migrated the staging cluster to Kubernetes version one point thirty, and everything came back healthy after about twenty minutes. The only hiccup was that two nodes lost their Tailscale connection, so Priya restarted the daemon and they rejoined the mesh. Today I want to finish the Wispr Flow dictation prototype, write the release notes, and review the Grafana dashboards with Marcus before lunch. After that, let's sync on the Postgres upgrade and the on-call rotation. Open Wispr Flow and start a new dictation session. Can you check whether the Tailscale node in Frankfurt is still online? The Kubernetes cluster has twelve pods stuck in a crash loop. Please send the Grafana dashboard link to Priya before the stand-up. My email address is alex@example.com, please reply by Friday. Schedule a call with Sarah Chen and Diego Alvarez for half past three tomorrow. Restart the Grafana agent, then tail the logs on the Kubernetes control plane. I've pushed the fix to the main branch, the build should take about 4 minutes. Remind me to renew the Tailscale licence on the 3rd of March. Wispr Flow costs $15 a month, but this app runs entirely offline. Set the Grafana alert threshold to 85 percent CPU for 10 minutes. Forward the invoice to accounts@example.org and copy in Marcus. The Kubernetes upgrade to version 1.31 is scheduled for the 14th of November. Tell Marcus that the Tailscale exit node in Dublin is back up. Grafana shows a latency spike of 250 milliseconds on the checkout service. Turn on Wispr Flow, dictate the notes, and paste them into Slack. Book a table for 6 people at 7:30 on Saturday evening. Sarah Chen approved the pull request, so we can deploy to Kubernetes this afternoon. Quick update for the team. The Tailscale rollout is finished, Grafana alerts are routed to the on-call channel, and the Kubernetes migration is about eighty percent done. I'll send a full summary to everyone@example.com by Thursday. Draft an email to Nikolai saying the Wispr Flow prototype now transcribes offline in under a hundred milliseconds, and ask whether he can test it on his MacBook Pro next week. Honestly, I think we should just ship it on Monday and fix the small bugs afterwards. What's the weather going to be like in Manchester this weekend?",
+  "jargon": [
+   "Wispr Flow",
+   "Tailscale",
+   "Kubernetes",
+   "Grafana"
+  ],
+  "cond": "clean",
+  "voice": "Daniel",
+  "set": "long",
+  "dur": 206.59
+ }
+]

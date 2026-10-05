@@ -1,0 +1,838 @@
+{
+  "checked_date": "2026-10-04",
+  "timezone": "Europe/London",
+  "scope": "Current working tree, inspected default packaged app, pinned licenses, current published upstream terms; not a legal opinion.",
+  "repository_base_commit": "73b6fa8af7a24747a23a53ee8e85b4bec2293286",
+  "repository_visibility": {
+    "private": true,
+    "method": "Authenticated gh api repository metadata read"
+  },
+  "fluid_audio": {
+    "version": "0.17.5",
+    "revision": "0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7",
+    "root_license_matches_upstream": true,
+    "initial_inspection": {
+      "default_nemo_trait_enabled": true,
+      "rust_engine_symbols_present_in_inspected_app": true
+    },
+    "remediation": {
+      "dependency_traits": [],
+      "scope": "App and S1, S1b, S4, S5 benchmark manifests",
+      "native_text_normalization_engine_excluded": true,
+      "verification_status": "Passed clean build, real-model tests and final bundle inspection",
+      "native_engine_runtime_available": false,
+      "itn_native_engine_runtime_available": false,
+      "asr_and_vad_implementations_retained": true
+    }
+  },
+  "model_integrity": [
+    {
+      "component": "parakeet-tdt-0.6b-v2",
+      "repo": "FluidInference/parakeet-tdt-0.6b-v2-coreml",
+      "revision": "ee09c569f73759e6d44c9bd16766f477b2b36d39",
+      "metadata_url": "https://huggingface.co/api/models/FluidInference/parakeet-tdt-0.6b-v2-coreml/paths-info/ee09c569f73759e6d44c9bd16766f477b2b36d39",
+      "files_checked": 22,
+      "unknown_files": [],
+      "mismatches": [],
+      "files": [
+        {
+          "path": "Decoder.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "46de1a6fe2e49d19a2125bc91acf020df7f2aea84ba821532aade8427a440b05",
+          "actual": "46de1a6fe2e49d19a2125bc91acf020df7f2aea84ba821532aade8427a440b05",
+          "matches": true
+        },
+        {
+          "path": "Decoder.mlmodelc/coremldata.bin",
+          "bytes": 554,
+          "algorithm": "sha256",
+          "expected": "d200ca07694a347f6d02a3886a062ae839831e094e443222f2e48a14945966a8",
+          "actual": "d200ca07694a347f6d02a3886a062ae839831e094e443222f2e48a14945966a8",
+          "matches": true
+        },
+        {
+          "path": "Decoder.mlmodelc/metadata.json",
+          "bytes": 3427,
+          "algorithm": "git-blob-sha1",
+          "expected": "e3a08d21a5d1577db2bedd1749ea0ddae5d21b73",
+          "actual": "e3a08d21a5d1577db2bedd1749ea0ddae5d21b73",
+          "matches": true
+        },
+        {
+          "path": "Decoder.mlmodelc/model.mil",
+          "bytes": 13106,
+          "algorithm": "git-blob-sha1",
+          "expected": "167cc9db34dd7828e0e61eab40d6a09f8a234d30",
+          "actual": "167cc9db34dd7828e0e61eab40d6a09f8a234d30",
+          "matches": true
+        },
+        {
+          "path": "Decoder.mlmodelc/weights/weight.bin",
+          "bytes": 14429952,
+          "algorithm": "sha256",
+          "expected": "27d26890221d82322c1092fd99d7b40578e435d5cf4b83c887c42603caf97aba",
+          "actual": "27d26890221d82322c1092fd99d7b40578e435d5cf4b83c887c42603caf97aba",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "42e638870d73f26b332918a3496ce36793fbb413a81cbd3d16ba01328637a105",
+          "actual": "42e638870d73f26b332918a3496ce36793fbb413a81cbd3d16ba01328637a105",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/coremldata.bin",
+          "bytes": 485,
+          "algorithm": "sha256",
+          "expected": "4def7aa848599ad0e17a8b9a982edcdbf33cf92e1f4b798de32e2ca0bc74b030",
+          "actual": "4def7aa848599ad0e17a8b9a982edcdbf33cf92e1f4b798de32e2ca0bc74b030",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/metadata.json",
+          "bytes": 2926,
+          "algorithm": "git-blob-sha1",
+          "expected": "c87f9eb24e76b8e518dc1fbead46c8c0029d3925",
+          "actual": "c87f9eb24e76b8e518dc1fbead46c8c0029d3925",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/model.mil",
+          "bytes": 959769,
+          "algorithm": "git-blob-sha1",
+          "expected": "93d1301ccde7c2ca447af6c01ab05bfda5a5dd2c",
+          "actual": "93d1301ccde7c2ca447af6c01ab05bfda5a5dd2c",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/weights/weight.bin",
+          "bytes": 445187200,
+          "algorithm": "sha256",
+          "expected": "4adc7ad44f9d05e1bffeb2b06d3bb02861a5c7602dff63a6b494aed3bf8a6c3e",
+          "actual": "4adc7ad44f9d05e1bffeb2b06d3bb02861a5c7602dff63a6b494aed3bf8a6c3e",
+          "matches": true
+        },
+        {
+          "path": "JointDecision.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "f1183ba213bb94a918c8d2cad19ab045320618f97f6ca662245b3936d7b090f7",
+          "actual": "f1183ba213bb94a918c8d2cad19ab045320618f97f6ca662245b3936d7b090f7",
+          "matches": true
+        },
+        {
+          "path": "JointDecision.mlmodelc/coremldata.bin",
+          "bytes": 534,
+          "algorithm": "sha256",
+          "expected": "e2c6752f1c8cf2d3f6f26ec93195c9bfa759ad59edf9f806696a138154f96f11",
+          "actual": "e2c6752f1c8cf2d3f6f26ec93195c9bfa759ad59edf9f806696a138154f96f11",
+          "matches": true
+        },
+        {
+          "path": "JointDecision.mlmodelc/metadata.json",
+          "bytes": 2936,
+          "algorithm": "git-blob-sha1",
+          "expected": "db3b2bc33cfda6f7cd1073d21182446180e53f94",
+          "actual": "db3b2bc33cfda6f7cd1073d21182446180e53f94",
+          "matches": true
+        },
+        {
+          "path": "JointDecision.mlmodelc/model.mil",
+          "bytes": 9722,
+          "algorithm": "git-blob-sha1",
+          "expected": "339c35b303b074de7fe047bb099311a4cc08cf53",
+          "actual": "339c35b303b074de7fe047bb099311a4cc08cf53",
+          "matches": true
+        },
+        {
+          "path": "JointDecision.mlmodelc/weights/weight.bin",
+          "bytes": 3453388,
+          "algorithm": "sha256",
+          "expected": "ca22a65903a05e64137677da608077578a8606090a598abf4875fa6199aaa19d",
+          "actual": "ca22a65903a05e64137677da608077578a8606090a598abf4875fa6199aaa19d",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "03ab3c1327a054c54c07a40325db967ec574f2c91dcc8192bfa44aa561bcf2d8",
+          "actual": "03ab3c1327a054c54c07a40325db967ec574f2c91dcc8192bfa44aa561bcf2d8",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/coremldata.bin",
+          "bytes": 494,
+          "algorithm": "sha256",
+          "expected": "d88ea1fc349459c9e100d6a96688c5b29a1f0d865f544be103001724b986b6d6",
+          "actual": "d88ea1fc349459c9e100d6a96688c5b29a1f0d865f544be103001724b986b6d6",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/metadata.json",
+          "bytes": 2974,
+          "algorithm": "git-blob-sha1",
+          "expected": "887f7d4adc6d7f933686f7b984e23a47b45f57e3",
+          "actual": "887f7d4adc6d7f933686f7b984e23a47b45f57e3",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/model.mil",
+          "bytes": 27166,
+          "algorithm": "git-blob-sha1",
+          "expected": "e94cce4bc7fbf55e55788449bf067ffe09a5ca91",
+          "actual": "e94cce4bc7fbf55e55788449bf067ffe09a5ca91",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/weights/weight.bin",
+          "bytes": 298880,
+          "algorithm": "sha256",
+          "expected": "a5f7df6c7f47147ae9486fe18cc7792f9a44d093ec3c6a11e91ef2dc363c48dc",
+          "actual": "a5f7df6c7f47147ae9486fe18cc7792f9a44d093ec3c6a11e91ef2dc363c48dc",
+          "matches": true
+        },
+        {
+          "path": "config.json",
+          "bytes": 3,
+          "algorithm": "git-blob-sha1",
+          "expected": "0967ef424bce6791893e9a57bb952f80fd536e93",
+          "actual": "0967ef424bce6791893e9a57bb952f80fd536e93",
+          "matches": true
+        },
+        {
+          "path": "parakeet_vocab.json",
+          "bytes": 18762,
+          "algorithm": "git-blob-sha1",
+          "expected": "a111d3bd29d44781c4588447c3eac1ea549cb1f1",
+          "actual": "a111d3bd29d44781c4588447c3eac1ea549cb1f1",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "component": "parakeet-ultra",
+      "repo": "FluidInference/parakeet-ultra-coreml",
+      "revision": "95eaa59a39d4394f047a4dc5cce480388a60d1b6",
+      "metadata_url": "https://huggingface.co/api/models/FluidInference/parakeet-ultra-coreml/tree/95eaa59a39d4394f047a4dc5cce480388a60d1b6?recursive=true&expand=true",
+      "files_checked": 20,
+      "unknown_files": [],
+      "mismatches": [],
+      "files": [
+        {
+          "path": "Decoder.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "fe92b6cfaa012abd5248c0bc877832f19807015abffc60d87b8ccc8ccb48b3b5",
+          "actual": "fe92b6cfaa012abd5248c0bc877832f19807015abffc60d87b8ccc8ccb48b3b5",
+          "matches": true
+        },
+        {
+          "path": "Decoder.mlmodelc/coremldata.bin",
+          "bytes": 560,
+          "algorithm": "sha256",
+          "expected": "3b06e66768f0df7e21795f50e2b29300e33eeb1a2579dc42c695279c2d308497",
+          "actual": "3b06e66768f0df7e21795f50e2b29300e33eeb1a2579dc42c695279c2d308497",
+          "matches": true
+        },
+        {
+          "path": "Decoder.mlmodelc/model.mil",
+          "bytes": 13110,
+          "algorithm": "git-blob-sha1",
+          "expected": "36dcd5cbb71d13f42a177427ddbab7539e0d167e",
+          "actual": "36dcd5cbb71d13f42a177427ddbab7539e0d167e",
+          "matches": true
+        },
+        {
+          "path": "Decoder.mlmodelc/weights/weight.bin",
+          "bytes": 23604992,
+          "algorithm": "sha256",
+          "expected": "02a0d219f281b9665bc10c8768649403b2eebbbf4b44c627041d948e0de11bb4",
+          "actual": "02a0d219f281b9665bc10c8768649403b2eebbbf4b44c627041d948e0de11bb4",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "d87101d824d6723cf95304da33755c3c60e762663b9ef2b0c4bd0aa166a09a0d",
+          "actual": "d87101d824d6723cf95304da33755c3c60e762663b9ef2b0c4bd0aa166a09a0d",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/coremldata.bin",
+          "bytes": 514,
+          "algorithm": "sha256",
+          "expected": "397a84a4062f563cbc5f56077c674f09a61d85be5090f61d2f1932afb92ac0fe",
+          "actual": "397a84a4062f563cbc5f56077c674f09a61d85be5090f61d2f1932afb92ac0fe",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/model.mil",
+          "bytes": 1002653,
+          "algorithm": "git-blob-sha1",
+          "expected": "8c5c9915fc71bb7e9b0be1e7b55e38ec6a007e7f",
+          "actual": "8c5c9915fc71bb7e9b0be1e7b55e38ec6a007e7f",
+          "matches": true
+        },
+        {
+          "path": "Encoder.mlmodelc/weights/weight.bin",
+          "bytes": 594211328,
+          "algorithm": "sha256",
+          "expected": "315ba01f33cadbf601d43ac7f5c86208b7aa75fdaa34705c9869d5abe3521c9b",
+          "actual": "315ba01f33cadbf601d43ac7f5c86208b7aa75fdaa34705c9869d5abe3521c9b",
+          "matches": true
+        },
+        {
+          "path": "JointDecisionv3.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "68d38ca646aebafa7a9329e2efda50f5767c49e89fdb5f77f212072bb66f97c4",
+          "actual": "68d38ca646aebafa7a9329e2efda50f5767c49e89fdb5f77f212072bb66f97c4",
+          "matches": true
+        },
+        {
+          "path": "JointDecisionv3.mlmodelc/coremldata.bin",
+          "bytes": 592,
+          "algorithm": "sha256",
+          "expected": "5e3af5a4ce686f6c237cadbd9284e10d333bc0e1546633cd0e430e6194044bc4",
+          "actual": "5e3af5a4ce686f6c237cadbd9284e10d333bc0e1546633cd0e430e6194044bc4",
+          "matches": true
+        },
+        {
+          "path": "JointDecisionv3.mlmodelc/model.mil",
+          "bytes": 11777,
+          "algorithm": "git-blob-sha1",
+          "expected": "be552d46f98f9dc9b242b0d1659833db60aa3f83",
+          "actual": "be552d46f98f9dc9b242b0d1659833db60aa3f83",
+          "matches": true
+        },
+        {
+          "path": "JointDecisionv3.mlmodelc/weights/weight.bin",
+          "bytes": 12642764,
+          "algorithm": "sha256",
+          "expected": "3f310b85b82341c53ec383025ab094a4e462ee1c592e1ad7c6bfe39cff66ca25",
+          "actual": "3f310b85b82341c53ec383025ab094a4e462ee1c592e1ad7c6bfe39cff66ca25",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "c9beeb989c8d66f8be11df59bc6df277ec76cee404f6865b46243835ef562f6d",
+          "actual": "c9beeb989c8d66f8be11df59bc6df277ec76cee404f6865b46243835ef562f6d",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/coremldata.bin",
+          "bytes": 486,
+          "algorithm": "sha256",
+          "expected": "dbde3f2300842c1fd51ef3ff948a0bcffe65ffd2dca10707f2509f32c1d65b1d",
+          "actual": "dbde3f2300842c1fd51ef3ff948a0bcffe65ffd2dca10707f2509f32c1d65b1d",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/metadata.json",
+          "bytes": 2841,
+          "algorithm": "git-blob-sha1",
+          "expected": "06162c58cf2f5343a0e60f36f843bcdf3cc58527",
+          "actual": "06162c58cf2f5343a0e60f36f843bcdf3cc58527",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/model.mil",
+          "bytes": 28181,
+          "algorithm": "git-blob-sha1",
+          "expected": "f987e2479228436c49189aa47edb376db74dcff5",
+          "actual": "f987e2479228436c49189aa47edb376db74dcff5",
+          "matches": true
+        },
+        {
+          "path": "Preprocessor.mlmodelc/weights/weight.bin",
+          "bytes": 491072,
+          "algorithm": "sha256",
+          "expected": "129b76e3aeafa8afa3ea76d995b964b145fe83700d579f6ff42c4c38fa0968ea",
+          "actual": "129b76e3aeafa8afa3ea76d995b964b145fe83700d579f6ff42c4c38fa0968ea",
+          "matches": true
+        },
+        {
+          "path": "config.json",
+          "bytes": 414,
+          "algorithm": "git-blob-sha1",
+          "expected": "169454f3dd120a0b7278bc1ef79ce8a8078febde",
+          "actual": "169454f3dd120a0b7278bc1ef79ce8a8078febde",
+          "matches": true
+        },
+        {
+          "path": "parakeet_v3_vocab.json",
+          "bytes": 151122,
+          "algorithm": "git-blob-sha1",
+          "expected": "c684822ec3b671ebc449c433a7012398d39b8bb0",
+          "actual": "c684822ec3b671ebc449c433a7012398d39b8bb0",
+          "matches": true
+        },
+        {
+          "path": "parakeet_vocab.json",
+          "bytes": 151122,
+          "algorithm": "git-blob-sha1",
+          "expected": "c684822ec3b671ebc449c433a7012398d39b8bb0",
+          "actual": "c684822ec3b671ebc449c433a7012398d39b8bb0",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "component": "silero-vad",
+      "repo": "FluidInference/silero-vad-coreml",
+      "revision": "b419383c55c110e2c9271fa6ee0ea83d03c70d96",
+      "metadata_url": "https://huggingface.co/api/models/FluidInference/silero-vad-coreml/tree/b419383c55c110e2c9271fa6ee0ea83d03c70d96?recursive=true&expand=true",
+      "files_checked": 6,
+      "unknown_files": [],
+      "mismatches": [],
+      "files": [
+        {
+          "path": "config.json",
+          "bytes": 2,
+          "algorithm": "git-blob-sha1",
+          "expected": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+          "actual": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+          "matches": true
+        },
+        {
+          "path": "silero-vad-unified-256ms-v6.2.1.mlmodelc/analytics/coremldata.bin",
+          "bytes": 243,
+          "algorithm": "sha256",
+          "expected": "8067594eb3126ab8318af507f0c00cabfed40d5fedb8a0ee5075dd02e903d909",
+          "actual": "8067594eb3126ab8318af507f0c00cabfed40d5fedb8a0ee5075dd02e903d909",
+          "matches": true
+        },
+        {
+          "path": "silero-vad-unified-256ms-v6.2.1.mlmodelc/coremldata.bin",
+          "bytes": 625,
+          "algorithm": "sha256",
+          "expected": "7db35a4fd995222a7fb0129713473b15d1462572ab4a2e5e4d56bcaad9e40f41",
+          "actual": "7db35a4fd995222a7fb0129713473b15d1462572ab4a2e5e4d56bcaad9e40f41",
+          "matches": true
+        },
+        {
+          "path": "silero-vad-unified-256ms-v6.2.1.mlmodelc/metadata.json",
+          "bytes": 3335,
+          "algorithm": "git-blob-sha1",
+          "expected": "8ecdc26edff98896279d325d0dfffc46a65f5f53",
+          "actual": "8ecdc26edff98896279d325d0dfffc46a65f5f53",
+          "matches": true
+        },
+        {
+          "path": "silero-vad-unified-256ms-v6.2.1.mlmodelc/model.mil",
+          "bytes": 176918,
+          "algorithm": "git-blob-sha1",
+          "expected": "adf9d2a7d9a4c02164644ff7c5d864d08eb409a9",
+          "actual": "adf9d2a7d9a4c02164644ff7c5d864d08eb409a9",
+          "matches": true
+        },
+        {
+          "path": "silero-vad-unified-256ms-v6.2.1.mlmodelc/weights/weight.bin",
+          "bytes": 882304,
+          "algorithm": "sha256",
+          "expected": "53ecc8b5081146140ab654c89109cf001f2183abddd7a2411c5081feeffff063",
+          "actual": "53ecc8b5081146140ab654c89109cf001f2183abddd7a2411c5081feeffff063",
+          "matches": true
+        }
+      ]
+    }
+  ],
+  "source_documents": [
+    {
+      "id": "v2-pinned-readme",
+      "url": "https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v2-coreml/raw/ee09c569f73759e6d44c9bd16766f477b2b36d39/README.md",
+      "resolved_url": "https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v2-coreml/raw/ee09c569f73759e6d44c9bd16766f477b2b36d39/README.md",
+      "sha256": "491eac9a160dc7b0f7ce1210dea4fff6df0222124e93ea83ae2cd72827b4ce02",
+      "bytes": 1665,
+      "last_modified": null
+    },
+    {
+      "id": "v2-pinned-license",
+      "url": "https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v2-coreml/raw/ee09c569f73759e6d44c9bd16766f477b2b36d39/LICENSE",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "ultra-pinned-readme",
+      "url": "https://huggingface.co/FluidInference/parakeet-ultra-coreml/raw/95eaa59a39d4394f047a4dc5cce480388a60d1b6/README.md",
+      "resolved_url": "https://huggingface.co/FluidInference/parakeet-ultra-coreml/raw/95eaa59a39d4394f047a4dc5cce480388a60d1b6/README.md",
+      "sha256": "9e9e26b6da628a0dc34b9c55f2029e486fc02304ccd7f83825333572ae11c158",
+      "bytes": 2235,
+      "last_modified": null
+    },
+    {
+      "id": "ultra-pinned-license",
+      "url": "https://huggingface.co/FluidInference/parakeet-ultra-coreml/raw/95eaa59a39d4394f047a4dc5cce480388a60d1b6/LICENSE",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "vad-pinned-readme",
+      "url": "https://huggingface.co/FluidInference/silero-vad-coreml/raw/b419383c55c110e2c9271fa6ee0ea83d03c70d96/README.md",
+      "resolved_url": "https://huggingface.co/FluidInference/silero-vad-coreml/raw/b419383c55c110e2c9271fa6ee0ea83d03c70d96/README.md",
+      "sha256": "c31dbec3e24a014a51fc06c645b3cb04897c97ecdbad9a90645466019c933ef4",
+      "bytes": 2472,
+      "last_modified": null
+    },
+    {
+      "id": "vad-pinned-license",
+      "url": "https://huggingface.co/FluidInference/silero-vad-coreml/raw/b419383c55c110e2c9271fa6ee0ea83d03c70d96/LICENSE",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "ultra-current-readme",
+      "url": "https://huggingface.co/FluidInference/parakeet-ultra-coreml/raw/main/README.md",
+      "resolved_url": "https://huggingface.co/FluidInference/parakeet-ultra-coreml/raw/main/README.md",
+      "sha256": "9e9e26b6da628a0dc34b9c55f2029e486fc02304ccd7f83825333572ae11c158",
+      "bytes": 2235,
+      "last_modified": null
+    },
+    {
+      "id": "diarizer-current-readme",
+      "url": "https://huggingface.co/FluidInference/speaker-diarization-coreml/raw/main/README.md",
+      "resolved_url": "https://huggingface.co/FluidInference/speaker-diarization-coreml/raw/main/README.md",
+      "sha256": "d0488f898df6da6e9d36f28b0704a65a13578d598c8685a9c5af0f5f8af13978",
+      "bytes": 4836,
+      "last_modified": null
+    },
+    {
+      "id": "nemo-cargo",
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/Cargo.toml",
+      "resolved_url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/Cargo.toml",
+      "sha256": "f4e5ff5b07d05ba431d69c320b4c750f157bc70edfa6737e2cae0457d92e6ac8",
+      "bytes": 1367,
+      "last_modified": null
+    },
+    {
+      "id": "nemo-cargo-lock",
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/Cargo.lock",
+      "resolved_url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/Cargo.lock",
+      "sha256": "b4eb31d0f16867f174dddfd7aa4883fbd94906273545d527e81a721a4b4396f1",
+      "bytes": 15410,
+      "last_modified": null
+    },
+    {
+      "id": "nemo-third-party",
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/THIRD-PARTY-LICENSES.md",
+      "resolved_url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/THIRD-PARTY-LICENSES.md",
+      "sha256": "14d21dbb0deb74aa7775f5803c36609aa6ef0c38c94fb03dbc95efb3645f7678",
+      "bytes": 2025,
+      "last_modified": null
+    },
+    {
+      "id": "nemo-license",
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/LICENSE",
+      "resolved_url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/LICENSE",
+      "sha256": "ac84752611bfcb8e2f472b17f9cb18f5321c9a75c2a5445b766725b1de67790b",
+      "bytes": 11344,
+      "last_modified": null
+    },
+    {
+      "id": "nemo-release",
+      "url": "https://api.github.com/repos/FluidInference/text-processing-rs/releases/tags/v0.3.1",
+      "resolved_url": "https://api.github.com/repos/FluidInference/text-processing-rs/releases/tags/v0.3.1",
+      "sha256": "c6924063219afb319340cc4522cee19f4b343cb56e3c55bfdef404d5701b4b0a",
+      "bytes": 7608,
+      "last_modified": "Mon, 21 Sep 2026 18:54:46 GMT"
+    },
+    {
+      "id": "fa-current-license",
+      "url": "https://raw.githubusercontent.com/FluidInference/FluidAudio/main/LICENSE",
+      "resolved_url": "https://raw.githubusercontent.com/FluidInference/FluidAudio/main/LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357,
+      "last_modified": null
+    },
+    {
+      "id": "apple-sdk-terms",
+      "url": "https://www.apple.com/legal/sla/docs/xcode.pdf",
+      "resolved_url": "https://www.apple.com/legal/sla/docs/xcode.pdf",
+      "sha256": "5e6bd16bcba3dd591bde1c57f7c6f19f08a194c84cdc54485c4660f90e2a26ec",
+      "bytes": 201889,
+      "last_modified": "Wed, 05 Aug 2026 15:47:35 GMT"
+    },
+    {
+      "id": "apple-program-terms",
+      "url": "https://developer.apple.com/support/downloads/terms/apple-developer-program/Apple-Developer-Program-License-Agreement-English.pdf",
+      "resolved_url": "https://developer.apple.com/support/downloads/terms/apple-developer-program/Apple-Developer-Program-License-Agreement-English.pdf",
+      "sha256": "088ab2a8c653b5457d206267a9cfe047d0b4d01fcdbff086b6bbf784d5fb7a4d",
+      "bytes": 1279602,
+      "last_modified": "Tue, 18 Aug 2026 14:33:54 GMT"
+    },
+    {
+      "id": "macos-tahoe",
+      "url": "https://www.apple.com/legal/sla/docs/macOSTahoe.pdf",
+      "bytes": 6676543,
+      "sha256": "ba07dc414fc4fee67d0c973e0072dfdd65e1dc06cc8d04b641678e6dfd0faf2e"
+    },
+    {
+      "id": "apple-guardrails-doc",
+      "url": "https://developer.apple.com/documentation/foundationmodels/improving-the-safety-of-generative-model-output.md",
+      "bytes": 23073,
+      "sha256": "36446ea5c699b4aea357551257d4032ef11b87465c57486e8be554d157f693db"
+    },
+    {
+      "id": "diarizer-notice",
+      "url": "https://huggingface.co/FluidInference/speaker-diarization-coreml/raw/main/NOTICE.md",
+      "bytes": 1925,
+      "sha256": "0964a66893fa5c3a574758257d30d2944669f44eeed5784b30ec3bab902012b3"
+    },
+    {
+      "id": "diarizer-provenance",
+      "url": "https://huggingface.co/FluidInference/speaker-diarization-coreml/raw/main/PROVENANCE.md",
+      "bytes": 3377,
+      "sha256": "0032bc1b7d01b6af2bb6eb8548a39c9a28fe5c1909f74166bc2ea2eb1cc27df6"
+    },
+    {
+      "id": "nemo-notice",
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/NOTICE",
+      "bytes": 1013,
+      "sha256": "886143044515319a91f4447f9b447bb89089b4c9af847300f4b8de830c805852"
+    },
+    {
+      "id": "nemo-build-workflow",
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/.github/workflows/xcframework.yml",
+      "bytes": 2210,
+      "sha256": "5f8aed4eb515d38b18a8d633648a3855ad41e80ed5f499d7f009368b9056c515"
+    },
+    {
+      "id": "silero-upstream-license",
+      "url": "https://raw.githubusercontent.com/snakers4/silero-vad/master/LICENSE",
+      "bytes": 1075,
+      "sha256": "2e63e9a38b6e8fc0c7bc37ce174caca1862870856c6daf5697cfb785e925520b"
+    },
+    {
+      "id": "apache-license",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "id": "mit-license",
+      "url": "https://opensource.org/license/mit",
+      "bytes": 185494,
+      "sha256": "c398fde67d4f4cb8114a5267a2c54595bfe86276d4552cba2eee34b2a41974b0"
+    },
+    {
+      "id": "fa-pinned-license",
+      "url": "https://raw.githubusercontent.com/FluidInference/FluidAudio/0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7/LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "id": "diarizer-meta",
+      "url": "https://huggingface.co/api/models/FluidInference/speaker-diarization-coreml",
+      "bytes": 5779,
+      "sha256": "25beec45ff4fd5fcdda8347c328a566bec51a9689e0577bf163c7f381d9b774b"
+    },
+    {
+      "id": "v2-meta",
+      "url": "https://huggingface.co/api/models/FluidInference/parakeet-tdt-0.6b-v2-coreml",
+      "bytes": 4131,
+      "sha256": "c55cace998637c38e44cb93bb2659aa2950270778c0aff66a7efef8beb70c49f"
+    },
+    {
+      "id": "ultra-meta",
+      "url": "https://huggingface.co/api/models/FluidInference/parakeet-ultra-coreml",
+      "bytes": 2320,
+      "sha256": "f2385ddd113c39baa2841e4e8f12b0cc07d9f0219725693f37e4718d3b2342be"
+    },
+    {
+      "id": "vad-meta",
+      "url": "https://huggingface.co/api/models/FluidInference/silero-vad-coreml",
+      "bytes": 3863,
+      "sha256": "f7509354ec6377c4e3e5f0fe0b4b1b311d3e8514571b0b3c693d946ba90e9468"
+    },
+    {
+      "id": "repo-meta",
+      "url": "https://api.github.com/repos/tommyyau/wisprlocal",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "nom-meta",
+      "url": "https://crates.io/api/v1/crates/nom/7.1.3",
+      "bytes": 1614,
+      "sha256": "34e7f64179a7d2f52f97c6366fb4f95a271ec9addf6903990e5ff54dee5a661e"
+    },
+    {
+      "id": "nemo-build-script",
+      "url": "https://raw.githubusercontent.com/FluidInference/text-processing-rs/v0.3.1/build-xcframework.sh",
+      "bytes": 3669,
+      "sha256": "520bc0004cc7320a62555e0c6841a4ec91058994837f557a7ca30ecf19892c63"
+    }
+  ],
+  "replacement_fixture": {
+    "path": "WisprLocal/App/Tests/WisprLocalCoreTests/Fixtures/clip05.wav",
+    "generator": "eSpeak NG 1.52.0 built-in en-us formant voice",
+    "sha256": "2213e8169d5ebce1139a2309e5406954e81a6316bf67b6fb95bac7ed5cc0e2a0",
+    "duration_seconds": 4.219125,
+    "sample_rate": 16000,
+    "channels": 1,
+    "sample_width_bits": 16,
+    "previous_apple_rendering_remains_in_existing_git_history": true
+  },
+  "verification": {
+    "selected_offline_tests": 14,
+    "suites": [
+      "FluidAudioIntegrationTests",
+      "GoldenCaptureTests",
+      "LicenseTests",
+      "LatencyBenchmarkTests"
+    ],
+    "network_denied": true,
+    "warm_pipeline_perceived_median_ms": 71.0,
+    "generator_shell_syntax_valid": true,
+    "after_remediation": {
+      "normal_suite_reported_tests": 731,
+      "normal_suite_reported_suites": 133,
+      "offline_suite_reported_tests": 731,
+      "offline_suite_reported_suites": 133,
+      "network_denied": true,
+      "remote_socket_tests_skipped_only_in_network_denied_run": true,
+      "zero_own_code_warnings": true,
+      "incremental_release_build_seconds": 9.676,
+      "build_budget_seconds": 180,
+      "s5_release_build_passed": true,
+      "s5_rust_symbol_matches": 0,
+      "rebuilt_app_model_files_rechecked": 48,
+      "staged_and_tracked_privacy_scan_passed": true,
+      "opt_in_tests_skipped_by_default": true
+    }
+  },
+  "unresolved": [
+    "S4 legacy speaker weight provenance and licensing",
+    "Tailscale actual account plan and remote-use purpose",
+    "Historical design image authorship and old tags excluded from clearance"
+  ],
+  "initial_local_license_digests": {
+    "WisprLocal/App/Licenses/FluidAudio/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "WisprLocal/App/Licenses/FluidAudio/NOTICE": "d50d13c68687dc40ae446de26904b1f69da48c76d8a571edd6b6f6699c75b409",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/JapaneseG2P-LICENSE.md": "cb82031f608b056ffb378073d15fd840e070a1dd3063f8975556f9536d447103",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/KokoroAneSpanishFrenchG2P-LICENSE.md": "82b80894661fb61209fc39f91bb50b2ed5d0c8628f9d1460ccc853b8bcf12043",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/NemoTextProcessing-LICENSE.md": "300a31d86c7c5d809f0adc00ef7d35259226acc7e412b9767cd3029a3395c50e",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/fastcluster-LICENSE.md": "67594dbe4a7477719c8160373e7767c2c319ef966a6042f76846a18af02cde0a",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/vbx-LICENSE.md": "08e57fdb5187c816e937916f1e176aadb400ca76f4b3b493d69730ec8f10dd80",
+    "WisprLocal/App/Licenses/parakeet-tdt-0.6b-v2/LICENSE": "bf35596d2957b4af6666e6c4d6a8c814bd6c9d9a3c7d3d4ab0e628fe08efaabb",
+    "WisprLocal/App/Licenses/parakeet-tdt-0.6b-v2/NOTICE": "760cf386b09678f12341ff170a1e22aa17dc9a7a215455dbaf53474f3455e7b6",
+    "WisprLocal/App/Licenses/parakeet-ultra/LICENSE": "b2c6268de5f85186b758e46c68b9d98e96700ff32c65b112905d61b694e93fde",
+    "WisprLocal/App/Licenses/parakeet-ultra/NOTICE": "cc1d186cf2200bc7e6b265793d892bbcf79e49c6f337dba4966a2f6b02c2cdfd",
+    "WisprLocal/App/Licenses/silero-vad/LICENSE": "51c19c8be941a3fb00ccf58f0bf9053de9f7237a0b37327896eabad32dffe873",
+    "WisprLocal/App/Licenses/silero-vad/NOTICE": "6ca6f87ed18c16e84681d2c126cbf462fc0e4cba5e0ca8e288d96244271f2c76"
+  },
+  "initial_local_package_digests": {
+    "WisprLocal/App/Package.resolved": "97a9ae520a7a14322c763d534a4bd862faebaf6cc12d38041ee4d68a09855156",
+    "WisprLocal/Spikes/S1-parakeet/Package.resolved": "bdb949bed83282364a718963a5860cee190e00fe290fad3900caadd1ee17bef6",
+    "WisprLocal/Spikes/S1b-models/Package.resolved": "bdb949bed83282364a718963a5860cee190e00fe290fad3900caadd1ee17bef6",
+    "WisprLocal/Spikes/S4-speaker/Package.resolved": "d674e13489c2efa3fac56a0cda9aa8bdd333fb49498143c7e7d534706612ddcb",
+    "WisprLocal/Spikes/S5-live/Package.resolved": "d674e13489c2efa3fac56a0cda9aa8bdd333fb49498143c7e7d534706612ddcb"
+  },
+  "packaged_artifacts": [
+    {
+      "artifact": "WisprLocal.app",
+      "binary_sha256": "f84220f5a5ca1d529295af43e130e118407d3b9309806df97b0f268314721d83",
+      "rust_symbol_matches": 0,
+      "retained_upstream_notices": [
+        "JapaneseG2P-LICENSE.md",
+        "KokoroAneSpanishFrenchG2P-LICENSE.md",
+        "fastcluster-LICENSE.md",
+        "vbx-LICENSE.md"
+      ],
+      "native_engine_artifact_matches": 0,
+      "test_resources_excluded": true,
+      "lux_tts_resources_excluded": true,
+      "signature_valid": true
+    },
+    {
+      "artifact": "WisprLocalReceiver.app",
+      "binary_sha256": "879be8af882081aa65c7ce7bceee0c80da82cb32644391dfa197dff0194ab015",
+      "rust_symbol_matches": 0,
+      "retained_upstream_notices": [
+        "JapaneseG2P-LICENSE.md",
+        "KokoroAneSpanishFrenchG2P-LICENSE.md",
+        "fastcluster-LICENSE.md",
+        "vbx-LICENSE.md"
+      ],
+      "native_engine_artifact_matches": 0,
+      "test_resources_excluded": true,
+      "lux_tts_resources_excluded": true,
+      "signature_valid": true
+    }
+  ],
+  "local_license_digests": {
+    "WisprLocal/App/Licenses/FluidAudio/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "WisprLocal/App/Licenses/FluidAudio/NOTICE": "089655993387d250ee96da32ee766b9dc4e25e6cd190978755fb42366b086650",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/JapaneseG2P-LICENSE.md": "cb82031f608b056ffb378073d15fd840e070a1dd3063f8975556f9536d447103",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/KokoroAneSpanishFrenchG2P-LICENSE.md": "82b80894661fb61209fc39f91bb50b2ed5d0c8628f9d1460ccc853b8bcf12043",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/fastcluster-LICENSE.md": "67594dbe4a7477719c8160373e7767c2c319ef966a6042f76846a18af02cde0a",
+    "WisprLocal/App/Licenses/FluidAudio/ThirdPartyLicenses/vbx-LICENSE.md": "08e57fdb5187c816e937916f1e176aadb400ca76f4b3b493d69730ec8f10dd80",
+    "WisprLocal/App/Licenses/parakeet-tdt-0.6b-v2/LICENSE": "bf35596d2957b4af6666e6c4d6a8c814bd6c9d9a3c7d3d4ab0e628fe08efaabb",
+    "WisprLocal/App/Licenses/parakeet-tdt-0.6b-v2/NOTICE": "760cf386b09678f12341ff170a1e22aa17dc9a7a215455dbaf53474f3455e7b6",
+    "WisprLocal/App/Licenses/parakeet-ultra/LICENSE": "b2c6268de5f85186b758e46c68b9d98e96700ff32c65b112905d61b694e93fde",
+    "WisprLocal/App/Licenses/parakeet-ultra/NOTICE": "09bc31e4cf21b5433cc9470729fa465d61f329a00fcc57fd40620d4611cfbdc0",
+    "WisprLocal/App/Licenses/silero-vad/LICENSE": "51c19c8be941a3fb00ccf58f0bf9053de9f7237a0b37327896eabad32dffe873",
+    "WisprLocal/App/Licenses/silero-vad/NOTICE": "6b3d5c0340c068e22f0862efae10cc14aaabd0cb12db4d7af6a5fc3f67d38983"
+  },
+  "local_package_digests": {
+    "WisprLocal/App/Package.resolved": "97a9ae520a7a14322c763d534a4bd862faebaf6cc12d38041ee4d68a09855156",
+    "WisprLocal/Spikes/S1-parakeet/Package.resolved": "bdb949bed83282364a718963a5860cee190e00fe290fad3900caadd1ee17bef6",
+    "WisprLocal/Spikes/S1b-models/Package.resolved": "bdb949bed83282364a718963a5860cee190e00fe290fad3900caadd1ee17bef6",
+    "WisprLocal/Spikes/S4-speaker/Package.resolved": "d674e13489c2efa3fac56a0cda9aa8bdd333fb49498143c7e7d534706612ddcb",
+    "WisprLocal/Spikes/S5-live/Package.resolved": "d674e13489c2efa3fac56a0cda9aa8bdd333fb49498143c7e7d534706612ddcb"
+  },
+  "follow_up_edit": {
+    "base_commit": "a857bb9502546311604fef4ff72e80c16e6f5a00",
+    "production_model_tokens": [
+      "v2",
+      "ultra",
+      "vad"
+    ],
+    "fluid_audio_retained_and_credited": true,
+    "rejected_phonon_execution_removed_from_app_and_tools": true,
+    "legacy_engine_history_preserved": true,
+    "model_weights_changed": false,
+    "pinned_model_cards_rechecked_and_unchanged": true,
+    "per_build_bundle_verification": "WisprLocal/App/scripts/verify_bundle.sh",
+    "verification_status": "Passed full CI, final app/receiver packaging inspection and headless real-model replay",
+    "normal_suite_reported_tests": 733,
+    "offline_suite_reported_tests": 733,
+    "reported_suites": 133,
+    "own_code_warnings": 0,
+    "incremental_release_build_seconds": 8.627,
+    "normal_and_offline_suites_passed": true,
+    "final_bundle_checks": [
+      {
+        "artifact": "WisprLocal.app",
+        "binary_sha256": "7c187afbe76d6ecc9b1c9a15b0aa1fe5a1783e393fd7e194b5126e12ff5d2f16",
+        "native_nemo_rust_symbol_matches": 0,
+        "fluid_audio_asr_symbols_present": true,
+        "fluid_audio_vad_symbols_present": true,
+        "bundled_notices_match_repository": true,
+        "signature_valid": true
+      },
+      {
+        "artifact": "WisprLocalReceiver.app",
+        "binary_sha256": "8c15c3e4f662ccf5d3d087576da4ae80cf277ac297b34aa55f841bd103444471",
+        "native_nemo_rust_symbol_matches": 0,
+        "fluid_audio_asr_symbols_present": true,
+        "fluid_audio_vad_symbols_present": true,
+        "bundled_notices_match_repository": true,
+        "signature_valid": true
+      }
+    ],
+    "rebuilt_model_files_matching_pinned_upstream": 48,
+    "negative_bundle_checks": [
+      "missing FluidAudio NOTICE",
+      "unused LuxTTS resource bundle",
+      "unsupported speaker model folder"
+    ],
+    "retired_model_download_rejected_before_network": true,
+    "headless_replay_both_parakeet_variants_passed": true,
+    "network_denied_for_replay": true,
+    "replay_coreml_diagnostic": "Existing E5RT zero-shape diagnostic during v2 warm-up; fixture transcription completed successfully."
+  }
+}

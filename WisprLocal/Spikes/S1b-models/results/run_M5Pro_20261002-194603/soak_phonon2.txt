@@ -1,0 +1,13 @@
+SOAK_START phonon2 load_ms=261.3 clips=91 rss_mb=84.0 footprint_mb=71.0 peak_rss_mb=84.2
+SOAK phonon2 i=0 t_s=0.1 last_ms=142.1 rss_mb=131.5 footprint_mb=88.6 peak_rss_mb=131.5
+SOAK phonon2 i=50 t_s=6.2 last_ms=69.6 rss_mb=258.9 footprint_mb=126.9 peak_rss_mb=261.3
+SOAK phonon2 i=100 t_s=12.4 last_ms=111.9 rss_mb=263.7 footprint_mb=128.3 peak_rss_mb=263.7
+SOAK phonon2 i=150 t_s=19.1 last_ms=107.8 rss_mb=231.9 footprint_mb=128.4 peak_rss_mb=263.7
+SOAK phonon2 i=200 t_s=26.3 last_ms=98.3 rss_mb=264.8 footprint_mb=128.8 peak_rss_mb=264.8
+SOAK phonon2 i=250 t_s=30.7 last_ms=79.1 rss_mb=262.4 footprint_mb=122.7 peak_rss_mb=265.2
+SOAK phonon2 i=300 t_s=36.2 last_ms=103.1 rss_mb=267.2 footprint_mb=126.2 peak_rss_mb=267.5
+SOAK phonon2 i=350 t_s=42.0 last_ms=79.1 rss_mb=267.1 footprint_mb=125.4 peak_rss_mb=269.8
+SOAK phonon2 i=400 t_s=48.4 last_ms=111.6 rss_mb=271.5 footprint_mb=124.2 peak_rss_mb=273.4
+SOAK phonon2 i=450 t_s=55.9 last_ms=86.4 rss_mb=273.4 footprint_mb=126.0 peak_rss_mb=273.5
+SOAK phonon2 i=499 t_s=60.0 last_ms=67.2 rss_mb=270.2 footprint_mb=122.6 peak_rss_mb=273.5
+SOAK_END phonon2 calls=500 wall_s=60.0 hangs=0 nondeterministic_outputs=0 rss_mb=270.3 footprint_mb=122.6 peak_rss_mb=273.5

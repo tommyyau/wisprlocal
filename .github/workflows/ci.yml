@@ -1,0 +1,34 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    # Select the newest stable Xcode 26–29 (prefer 27 over 26); otherwise use the runner default.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select newest stable Xcode
+        shell: bash
+        run: |
+          xcode=$(find /Applications -maxdepth 1 -name 'Xcode_2[6-9]*.app' | grep -Eiv 'beta|release[ _-]*candidate|[ _-]RC([ _.-]|$)' | sort -V | tail -1 || true)
+          if [ -n "$xcode" ]; then
+            sudo xcode-select -s "$xcode/Contents/Developer"
+          else
+            echo "No stable Xcode 26–29 found; using runner default: $(xcode-select -p)"
+          fi
+          xcodebuild -version
+          swift --version
+      # Models are absent: real-model tests skip. Do not fetch weights in CI.
+      - name: Build and test
+        working-directory: WisprLocal/App
+        env:
+          # Shared runners are slower than a developer Mac; scale the tests' CPU-time budgets.
+          WISPRLOCAL_TIMING_SCALE: "2"
+        run: |
+          swift build
+          swift test
+          scripts/check_warnings.sh
+      # This is the same privacy guard used by scripts/hooks/pre-commit.
+      - name: Pre-commit privacy guard
+        run: WisprLocal/App/scripts/privacy_scan.sh

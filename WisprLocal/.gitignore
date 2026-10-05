@@ -1,0 +1,8 @@
+.build/
+build/
+build.noindex/
+.swiftpm/
+Models/
+*.mlmodelc/
+*.app/
+Spikes/S1b-models/results/raw/

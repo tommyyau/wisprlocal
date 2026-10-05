@@ -1,0 +1,25 @@
+LOAD_MS 271.8 rss_mb=44.4 footprint_mb=31.6 peak_rss_mb=44.4
+LAT phonon2 clean/u01.wav dur_s=3.06 first_ms=132.2 median5_ms=95.0 min_ms=91.8 max_ms=103.7 rtfx=32.3
+LAT phonon2 clean/u19.wav dur_s=14.44 first_ms=222.8 median5_ms=201.7 min_ms=199.3 max_ms=204.4 rtfx=71.6
+LAT phonon2 s1/clip30.wav dur_s=27.98 first_ms=391.8 median5_ms=372.8 min_ms=370.1 max_ms=384.9 rtfx=75.1
+LAT phonon2 s1/clip60.wav dur_s=57.09 first_ms=747.2 median5_ms=774.0 min_ms=741.8 max_ms=800.3 rtfx=73.8
+HYPS Spikes/S1b-models/results/raw/hyps_phonon2.jsonl n=92
+MEM_END rss_mb=235.1 footprint_mb=120.2 peak_rss_mb=244.3
+       18.21 real        31.37 user        10.50 sys
+           256163840  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               87512  page reclaims
+                 303  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+              318043  involuntary context switches
+         92958615870  instructions retired
+         91351733492  cycles elapsed
+           134284224  peak memory footprint

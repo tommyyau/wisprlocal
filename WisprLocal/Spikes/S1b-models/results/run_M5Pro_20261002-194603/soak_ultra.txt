@@ -1,0 +1,13 @@
+SOAK_START ultra load_ms=817.4 clips=91 rss_mb=83.0 footprint_mb=52.2 peak_rss_mb=83.2
+SOAK ultra i=0 t_s=0.1 last_ms=131.9 rss_mb=130.2 footprint_mb=67.6 peak_rss_mb=130.2
+SOAK ultra i=50 t_s=2.7 last_ms=42.9 rss_mb=176.1 footprint_mb=86.6 peak_rss_mb=176.1
+SOAK ultra i=100 t_s=5.2 last_ms=40.7 rss_mb=221.0 footprint_mb=106.3 peak_rss_mb=221.2
+SOAK ultra i=150 t_s=7.7 last_ms=43.2 rss_mb=221.4 footprint_mb=106.4 peak_rss_mb=222.3
+SOAK ultra i=200 t_s=10.4 last_ms=41.6 rss_mb=216.6 footprint_mb=107.0 peak_rss_mb=223.5
+SOAK ultra i=250 t_s=13.9 last_ms=55.8 rss_mb=224.8 footprint_mb=138.3 peak_rss_mb=230.7
+SOAK ultra i=300 t_s=19.3 last_ms=57.1 rss_mb=223.0 footprint_mb=128.5 peak_rss_mb=235.3
+SOAK ultra i=350 t_s=22.8 last_ms=61.9 rss_mb=231.9 footprint_mb=130.0 peak_rss_mb=235.3
+SOAK ultra i=400 t_s=27.7 last_ms=69.5 rss_mb=238.8 footprint_mb=129.0 peak_rss_mb=239.2
+SOAK ultra i=450 t_s=32.2 last_ms=119.6 rss_mb=237.5 footprint_mb=123.6 peak_rss_mb=239.2
+SOAK ultra i=499 t_s=37.3 last_ms=73.1 rss_mb=238.3 footprint_mb=122.0 peak_rss_mb=241.8
+SOAK_END ultra calls=500 wall_s=37.3 hangs=0 nondeterministic_outputs=0 rss_mb=238.4 footprint_mb=122.0 peak_rss_mb=241.8

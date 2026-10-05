@@ -1,0 +1,7 @@
+Silero VAD (Core ML) — voice activity detection model bundled in WisprLocal.
+  - Original model: Silero VAD by Silero Team (github.com/snakers4/silero-vad), MIT License.
+  - Core ML conversion: FluidInference (https://huggingface.co/FluidInference/silero-vad-coreml),
+    revision b419383c55c110e2c9271fa6ee0ea83d03c70d96.
+File: silero-vad-unified-256ms-v6.2.1.mlmodelc.
+Modifications: Core ML conversion by FluidInference; no further changes by WisprLocal.
+Bundled unmodified, exactly as published at the revision above. See LICENSE for the MIT grant.

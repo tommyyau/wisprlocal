@@ -1,0 +1,1 @@
+Please open Wispr Flow, then connect my laptop to the Tailscale network.

@@ -1,0 +1,31 @@
+# Exact tokens that privacy_scan.sh and PrivacyGuardTests accept although they match a generic
+# personal-data pattern. ONLY synthetic test/documentation values belong here: never a real
+# address, hostname or e-mail. One token per line; '#' starts a comment.
+
+# 100.64.0.0/10 range boundaries and synthetic receiver addresses used by the remote-bridge tests/docs
+100.64.0.0
+100.64.0.1
+100.64.0.9
+100.64.0.256
+100.064.0.1
+100.64.00.1
+100.66.0.5
+100.70.1.2
+100.72.10.20
+100.80.0.1
+100.90.0.1
+100.90.1.2
+100.90.1.3
+100.90.1.9
+100.100.100.100
+100.101.1.2
+100.101.102.103
+100.127.255.255
+
+# Synthetic host names used by the pairing / receiver-matching tests
+studio-mac.local
+studio.tail1234.ts.net
+macmini.tail1234.ts.net
+
+# Synthetic e-mail used by the snippet-expansion tests
+a@b.c

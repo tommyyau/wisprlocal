@@ -1,0 +1,20 @@
+LOAD_MS ultra gpu=false hub=false load_ms=17981.3 first_transcribe_ms=108.6 rss_before_mb=7.8 rss_mb=107.8 footprint_mb=46.2 peak_rss_mb=642.1
+TEXT Please open Whiskerflow, then connect my laptop to the Tailscale network.
+       18.55 real         2.16 user         0.98 sys
+           673316864  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               10805  page reclaims
+               40153  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 475  voluntary context switches
+               14587  involuntary context switches
+         40608694893  instructions retired
+          8609849979  cycles elapsed
+            66520120  peak memory footprint

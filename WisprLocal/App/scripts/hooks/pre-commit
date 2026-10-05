@@ -1,0 +1,8 @@
+#!/bin/bash
+# Pre-commit privacy guard: refuses a commit whose staged content contains personal data
+# (home paths, private hostnames, tailnet IPs, real e-mails, private denylist terms).
+# Install once per clone, from the repo root:
+#   git config core.hooksPath WisprLocal/App/scripts/hooks
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+exec "$ROOT/WisprLocal/App/scripts/privacy_scan.sh" --staged

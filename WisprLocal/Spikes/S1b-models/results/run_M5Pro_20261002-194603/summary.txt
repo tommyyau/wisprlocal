@@ -1,0 +1,71 @@
+== S1b run 20261002-194603
+host: Apple M5 Pro / 64 GB / macOS 26.6.2 (25G83)
+-- build (release)
+Build complete! (0.30 secs)
+-- models (download only if missing; this is the only networked step)
+disk ultra: 618M (632.3 MB)
+disk phonon2: 341M (357.7 MB)
+-- first-ever ANE compile (one fresh process name per model)
+first-ever ultra: load_ms=17981.3 footprint_mb=46.2 maxRSS=642 MB
+first-ever phonon2: load_ms=96265.2 footprint_mb=54.5 maxRSS=375 MB
+-- warm-up compile for the main binary (no-op if already cached)
+warm-up ultra load_ms=238.5
+warm-up phonon2 load_ms=223.3
+-- cold load, ANE cache warm (3 fresh processes each, network denied)
+cold ultra #1: load_ms=213.1 first_transcribe_ms=95.6 maxRSS=88 MB
+cold ultra #2: load_ms=213.6 first_transcribe_ms=105.1 maxRSS=88 MB
+cold ultra #3: load_ms=211.1 first_transcribe_ms=106.2 maxRSS=88 MB
+cold phonon2 #1: load_ms=221.9 first_transcribe_ms=100.0 maxRSS=90 MB
+cold phonon2 #2: load_ms=222.6 first_transcribe_ms=98.7 maxRSS=90 MB
+cold phonon2 #3: load_ms=212.5 first_transcribe_ms=93.8 maxRSS=90 MB
+-- latency (first + median of 5) and one pass over all fixtures for WER (network denied)
+LAT ultra clean/u01.wav dur_s=3.06 first_ms=94.2 median5_ms=63.8 min_ms=61.2 max_ms=64.6 rtfx=48.0
+LAT ultra clean/u19.wav dur_s=14.44 first_ms=136.3 median5_ms=123.6 min_ms=122.4 max_ms=140.7 rtfx=116.8
+LAT ultra s1/clip30.wav dur_s=27.98 first_ms=297.3 median5_ms=382.7 min_ms=280.2 max_ms=397.3 rtfx=73.1
+LAT ultra s1/clip60.wav dur_s=57.09 first_ms=518.6 median5_ms=538.4 min_ms=519.5 max_ms=546.8 rtfx=106.0
+bench ultra: peak RSS 231 MB, peak footprint 122 MB
+LAT phonon2 clean/u01.wav dur_s=3.06 first_ms=132.2 median5_ms=95.0 min_ms=91.8 max_ms=103.7 rtfx=32.3
+LAT phonon2 clean/u19.wav dur_s=14.44 first_ms=222.8 median5_ms=201.7 min_ms=199.3 max_ms=204.4 rtfx=71.6
+LAT phonon2 s1/clip30.wav dur_s=27.98 first_ms=391.8 median5_ms=372.8 min_ms=370.1 max_ms=384.9 rtfx=75.1
+LAT phonon2 s1/clip60.wav dur_s=57.09 first_ms=747.2 median5_ms=774.0 min_ms=741.8 max_ms=800.3 rtfx=73.8
+bench phonon2: peak RSS 244 MB, peak footprint 128 MB
+| Condition | ultra WER | phonon2 WER | ultra jargon | phonon2 jargon |
+|---|---|---|---|---|
+| clean (S1 + 22 utt) | 6.63 % | 10.03 % | 32/48 | 21/48 |
+| clean utt only (22) | 7.85 % | 10.88 % | 18/30 | 13/30 |
+| tv -10 dB | 6.95 % | 13.29 % | 22/30 | 14/30 |
+| tv -6 dB | 7.55 % | 21.15 % | 21/30 | 13/30 |
+| music -10 dB | 8.16 % | 13.29 % | 19/30 | 16/30 |
+| long 3.4 min | 5.73 % | 7.81 % | 3/4 | 2/4 |
+long-form adjacent duplicate words (ultra): hyp=1 ref=0
+long-form adjacent duplicate words (phonon2): hyp=0 ref=0
+
+| Term (all conditions) | ultra | phonon2 |
+|---|---|---|
+| Argo CD | 1/1 | 0/1 |
+| Diego Alvarez | 5/5 | 5/5 |
+| Grafana | 19/22 | 17/22 |
+| Helm | 1/1 | 1/1 |
+| Kubernetes | 22/23 | 9/23 |
+| Manchester | 4/4 | 4/4 |
+| Marcus | 5/9 | 7/9 |
+| Nikolai | 4/4 | 4/4 |
+| Parakeet | 1/1 | 0/1 |
+| Postgres | 1/1 | 0/1 |
+| Priya | 5/5 | 5/5 |
+| Sarah Chen | 5/9 | 2/9 |
+| Slack | 5/5 | 4/5 |
+| Tailscale | 11/20 | 3/20 |
+| Wispr Flow | 0/20 | 0/20 |
+| accounts@example.org | 0/4 | 0/4 |
+| everyone@example.com | 4/4 | 4/4 |
+| alex@example.com | 4/4 | 1/4 |
+-- stability soak: 500 sequential mixed clips per model, 10 s per-call watchdog (network denied)
+SOAK_END ultra calls=500 wall_s=37.3 hangs=0 nondeterministic_outputs=0 rss_mb=238.4 footprint_mb=122.0 peak_rss_mb=241.8
+SOAK_END phonon2 calls=500 wall_s=60.0 hangs=0 nondeterministic_outputs=0 rss_mb=270.3 footprint_mb=122.6 peak_rss_mb=273.5
+-- escalation check (Ultra = primary)
+OK: Ultra 28 s clip median 382.7 ms (limit 2000)
+OK: Ultra peak RSS 230 MB (limit 2048)
+OK: Ultra clean WER 6.63 % <= Phonon-2 10.03 %
+escalation: none
+summary: Spikes/S1b-models/results/run_M5Pro_20261002-194603/summary.txt

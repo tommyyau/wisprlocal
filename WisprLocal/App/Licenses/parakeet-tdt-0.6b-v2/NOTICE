@@ -1,0 +1,12 @@
+Parakeet TDT 0.6B v2 (Core ML) — the default ("English") speech recognition model bundled in WisprLocal.
+
+Attribution (CC-BY-4.0):
+  - Core ML conversion and distribution: FluidInference,
+    "FluidInference/parakeet-tdt-0.6b-v2-coreml" (huggingface.co/FluidInference/parakeet-tdt-0.6b-v2-coreml),
+    revision ee09c569f73759e6d44c9bd16766f477b2b36d39.
+  - Converted from "nvidia/parakeet-tdt-0.6b-v2" by NVIDIA (huggingface.co/nvidia/parakeet-tdt-0.6b-v2).
+Both are licensed CC-BY-4.0 ("GOVERNING TERMS: Use of this model is governed by the CC-BY-4.0 license").
+
+Modifications: the NVIDIA checkpoint was converted to Core ML by FluidInference. WisprLocal makes no
+further changes: the Core ML files are bundled unmodified, exactly as published at the revision above.
+No warranties are given; see the licence.

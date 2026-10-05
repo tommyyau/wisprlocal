@@ -1,0 +1,4 @@
+(version 1)
+(allow default)
+(deny network-outbound (remote ip))
+(deny network-inbound (remote ip))

@@ -1,0 +1,7 @@
+FluidAudio 0.17.5 by FluidInference powers WisprLocal's Parakeet speech recognition and Silero
+voice activity detection. It is statically linked into WisprLocal and WisprLocalReceiver.
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+Unmodified upstream source at revision 0b1f46289fe27d95b5e66ad8be46e64f5ee02ae7.
+Third-party components retained in this build are listed in ThirdPartyLicenses/ (individual
+notices copied unchanged from the FluidAudio source distribution).
+Source: https://github.com/FluidInference/FluidAudio

@@ -1,0 +1,1 @@
+Quick update on the release. The Kubernetes cluster is back up, the database migration finished at three fifteen, and we are seeing about forty two requests per second. I will send the full report tomorrow morning, once the numbers settle.

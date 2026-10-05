@@ -1,0 +1,83 @@
+name: Bug report
+description: Something doesn't work as it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please check [INSTALL.md › Troubleshooting](https://github.com/tommyyau/wisprlocal/blob/main/WisprLocal/docs/INSTALL.md#troubleshooting) first; most "nothing happens" reports are a permission.
+        **Security problem?** Don't file it here. See [SECURITY.md](https://github.com/tommyyau/wisprlocal/blob/main/.github/SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open TextEdit
+        2. Hold 🌐 and say "..."
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: WisprLocal version
+      description: Menu bar icon › Help › About WisprLocal.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac
+      placeholder: "macOS 26.6.2, MacBook Pro M3"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Install / build / first launch
+        - Permissions
+        - Globe key / hotkey
+        - Recognition accuracy
+        - Text insertion (wrong place, missing, doubled)
+        - AI formatting
+        - Dictionary / snippets / history
+        - Remote / Receiver
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Which app were you dictating into?
+      placeholder: "Slack, VS Code, Chrome, Terminal..."
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: Settings shows Ready (all three permissions granted)
+        - label: Wispr Flow (or another app that uses 🌐) was not running.
+  - type: textarea
+    id: recording
+    attributes:
+      label: Misrecognition? (optional)
+      description: |
+        For accuracy bugs, keep **Settings › Privacy › "Keep last 20 recordings (on this Mac)"** on (on by default), reproduce the problem, and find the WAV and JSON files in `~/Library/Application Support/WisprLocal/DebugRecordings/`.
+        **This is your voice.** Only attach a recording if you're happy for it to be public on GitHub. Pasting the JSON's raw and final text is often enough. Turn the setting off again afterwards if you like.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (optional)
+      description: |
+        Console.app, filter on subsystem `com.tommyyau.wisprlocal`. WisprLocal logs outcome kinds, counts, timings and error descriptions only — never your dictated words (a test enforces this). Please still check before pasting.
+      render: text

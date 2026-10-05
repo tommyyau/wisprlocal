@@ -1,0 +1,2 @@
+Hello, this is my voice enrollment sample. I am reading a short passage so the app can learn how I sound. The quick brown fox jumps over the lazy dog, and then it wanders off into the forest looking for something to eat. Yesterday I walked to the station, bought a coffee, and caught the early train into the city. My favourite season is autumn because the light is soft and the air smells of rain and woodsmoke.
+ On weekends I like to cook for friends, usually something slow and simple like a stew with fresh bread and a good salad on the side.

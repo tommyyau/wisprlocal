@@ -1,0 +1,12 @@
+.build/
+build/
+build.noindex/
+*.app
+.models-cache/
+
+# Xcode and macOS local state
+DerivedData/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+.DS_Store

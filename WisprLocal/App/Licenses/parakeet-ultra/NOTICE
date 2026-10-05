@@ -1,0 +1,14 @@
+Parakeet Ultra (Core ML) — speech recognition model bundled in WisprLocal.
+
+Attribution (CC-BY-4.0):
+  - Core ML conversion (int8 encoder) and distribution: FluidInference,
+    "FluidInference/parakeet-ultra-coreml" (https://huggingface.co/FluidInference/parakeet-ultra-coreml),
+    revision 95eaa59a39d4394f047a4dc5cce480388a60d1b6.
+  - Derived from "moondream/parakeet-ultra" by Moondream (huggingface.co/moondream/parakeet-ultra).
+  - Which is derived from "nvidia/parakeet-tdt-0.6b-v3" by NVIDIA (huggingface.co/nvidia/parakeet-tdt-0.6b-v3).
+All three are licensed CC-BY-4.0 ("License CC-BY-4.0, as the upstream checkpoint").
+
+Modifications: Moondream post-trained NVIDIA's checkpoint. FluidInference converted it to Core ML
+and quantized the encoder to int8 linear per-channel. WisprLocal makes no further changes:
+the Core ML files are bundled unmodified, exactly as published at the revision above.
+No warranties are given; see the licence.
