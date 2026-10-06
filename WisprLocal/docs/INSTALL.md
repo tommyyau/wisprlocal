@@ -1,6 +1,6 @@
 # Installing WisprLocal
 
-> Building from source is the only way to install WisprLocal. There is no prebuilt download or release.
+> Building from source is the only way to install WisprLocal. There is no prebuilt download or GitHub Release.
 
 This is the detailed guide. The short version is in the [README](../../readme.md#build-from-source), which also covers Xcode setup and common build errors.
 

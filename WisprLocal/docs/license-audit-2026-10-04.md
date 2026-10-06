@@ -273,8 +273,8 @@ License structure tests check file presence and selected text; they do not
 prove legal completeness. Manual microphone, UI and two-Mac testing are not
 claimed by these automated checks.
 
-Before public source distribution, review old Apple-voice blobs in the Git
-history. The rebuilt app and receiver exclude the unused Rust engine. Keep
+The old Apple-voice blobs exist only in the maintainer's unpublished Git
+history; the public repository starts from one fresh commit (see above). The rebuilt app and receiver exclude the unused Rust engine. Keep
 the unresolved S4 legacy weights out of the default bundle. When adding a model, changing a dependency/trait, distributing
 a new artifact, or enabling a new service, repeat the inventory, pin-level
 license/provenance check, and final-bundle inspection. Preserve valid earlier

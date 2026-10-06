@@ -42,7 +42,7 @@ Speech recognition, cleanup, learning and history run on this Mac without networ
 
 - **Install:** source build only; macOS 26 or later on Apple Silicon. Follow [Build from source](#build-from-source).
 - **Use:** hold 🌐 to talk, release to type; double-tap for hands-free.
-- **Status:** no public release yet; no prebuilt download. P1–P3 are built. Settings was redesigned into five tabs on 2026-10-04; release builds use the hardened runtime. 911 tests in 157 suites passed on 2026-10-05 (network-denied run: 911 passed; socket-dependent and opt-in tests are skipped). The detailed manual checklist remains unchecked; Remote Macs is Beta and the manual two-Mac test is still pending. See [TEST_REPORT](WisprLocal/docs/TEST_REPORT.md) and [the live test inventory](WisprLocal/App/scripts/test_inventory.sh).
+- **Status:** version 1.0.0, published as source code only. There is no prebuilt download; build it from source (see [INSTALL.md](WisprLocal/docs/INSTALL.md)). P1–P3 are built. Settings was redesigned into five tabs on 2026-10-04; release builds use the hardened runtime. 911 tests in 157 suites passed on 2026-10-05 (network-denied run: 911 passed; socket-dependent and opt-in tests are skipped). The detailed manual checklist remains unchecked; Remote Macs is Beta and the manual two-Mac test is still pending. See [TEST_REPORT](WisprLocal/docs/TEST_REPORT.md) and [the live test inventory](WisprLocal/App/scripts/test_inventory.sh).
 
 ## Background: why this exists
 
@@ -101,7 +101,7 @@ Switch from the menu bar (**Noisy Room Mode**, a checkmark; unchecked means Engl
 
 ## Build from source
 
-Building from source is the only way to install WisprLocal. There is no prebuilt download or release, so you build the app yourself. You don't need to know Swift. The first build takes approximately 10 to 20 minutes, depending on the machine and connection.
+Building from source is the only way to install WisprLocal. There is no prebuilt download or GitHub Release, so you build the app yourself. You don't need to know Swift. The first build takes approximately 10 to 20 minutes, depending on the machine and connection.
 
 ### What you need
 

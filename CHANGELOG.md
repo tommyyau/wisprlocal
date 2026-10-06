@@ -2,11 +2,11 @@
 
 All notable changes to WisprLocal are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## 1.0.0 — unreleased
+## 1.0.0 — source code only
 
 - History, Home and search stay fast as history grows: newest entries load first, older days page in as you scroll, and new dictations update the screens without re-reading the file.
 
-First version of WisprLocal, a native push-to-talk dictation app with local speech recognition, cleanup, learning and history for macOS 26 on Apple Silicon. No public release yet.
+First version of WisprLocal, a native push-to-talk dictation app with local speech recognition, cleanup, learning and history for macOS 26 on Apple Silicon. Published as source code only; there is no prebuilt download.
 
 - Complete the recording guide in Help and Getting Started: hold/release, double-tap, Done/single-tap finish, cancellation and text recovery. Extend the Welcome Tour with separate hands-free practice and a finish/cancel/recover page; expand Help's setup, spelling, microphone, privacy and troubleshooting guidance.
 

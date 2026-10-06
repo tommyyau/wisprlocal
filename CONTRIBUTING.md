@@ -57,7 +57,7 @@ Without it, builds are ad-hoc signed and macOS forgets Accessibility and Input M
 - Add or update tests (Swift Testing, in `WisprLocal/App/Tests/WisprLocalCoreTests/`). Bug fixes should come with a test that failed before the fix.
 - Run `scripts/ci.sh` (warnings, `swift test`, offline tests and build time) before opening the PR, and say in the description that it passes.
 - For UI changes, include a screenshot.
-- Update [CHANGELOG.md](CHANGELOG.md) under `## 1.0.0 — unreleased`.
+- Update [CHANGELOG.md](CHANGELOG.md) under `## 1.0.0 — source code only`.
 - By contributing, you agree your work is released under the [MIT License](LICENSE).
 
 ## Releases (maintainer only)
