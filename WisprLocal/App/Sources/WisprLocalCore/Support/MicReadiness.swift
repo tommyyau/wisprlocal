@@ -20,7 +20,7 @@ public enum MicReadiness: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .off: "The first word can be clipped."
         case .afterDictating: "Keeps the first word of back-to-back dictations."
-        case .always: "Keeps the first word of almost every dictation; ~10–20 % of one CPU core."
+        case .always: "Keeps the first word of almost every dictation; ~10 % of one CPU core."
         }
     }
     @MainActor public func apply(to settings: AppSettings) {

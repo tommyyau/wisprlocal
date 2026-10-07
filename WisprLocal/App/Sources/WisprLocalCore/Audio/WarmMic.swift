@@ -2,12 +2,13 @@ import Foundation
 import Observation
 
 /// Keeps the microphone engine running between dictations so the next one doesn't lose its
-/// first word to engine start-up (~185 ms lost with voice processing off, ~245 ms with it on).
+/// first word to engine start-up (~185 ms lost with voice processing off).
 ///
 /// - "Microphone readiness: Ready for 60 s after dictating" (default ON): warm for `MicWarmPolicy.window` after
 ///   each dictation; a dictation inside the window gets the last 300 ms prepended and restarts
 ///   the window when it finishes. On expiry the engine stops and the ring is zeroed and freed.
 /// - "Always ready (mic stays on)" (default OFF): warm whenever allowed.
+/// Noise reduction disables both modes so voice processing cannot duck other audio while idle.
 ///
 /// PRIVACY (STRUCTURAL): warm mode is dropped at once, and the ring zeroed, on screen lock,
 /// sleep, fast user switch, the Wispr Flow conflict gate, secure input, app quit, or "Stop now".
@@ -44,15 +45,18 @@ public final class WarmMicController {
     @ObservationIgnored private let audio: AudioCapturing
     @ObservationIgnored private let keepReady: () -> Bool
     @ObservationIgnored private let alwaysReady: () -> Bool
+    @ObservationIgnored private let voiceProcessingOn: () -> Bool
     @ObservationIgnored public var now: () -> Date
     @ObservationIgnored public var isSecureInputActive: () -> Bool
     @ObservationIgnored public var isConflictActive: () -> Bool
 
     public init(audio: AudioCapturing, keepReady: @escaping () -> Bool, alwaysReady: @escaping () -> Bool,
+                voiceProcessingOn: @escaping () -> Bool = { false },
                 now: @escaping () -> Date = { Date() },
                 isSecureInputActive: @escaping () -> Bool = { false },
                 isConflictActive: @escaping () -> Bool = { false }) {
         self.audio = audio; self.keepReady = keepReady; self.alwaysReady = alwaysReady
+        self.voiceProcessingOn = voiceProcessingOn
         self.now = now; self.isSecureInputActive = isSecureInputActive; self.isConflictActive = isConflictActive
         syncStopIntent()
     }
@@ -67,6 +71,10 @@ public final class WarmMicController {
 
     public func settingsChanged() {
         syncStopIntent()
+        if !canArm {
+            if isWarm { drop(.settingOff) }
+            return
+        }
         if alwaysReady() { arm(); return }
         switch mode {
         case .always: drop(.settingOff)
@@ -80,6 +88,10 @@ public final class WarmMicController {
     public func tick() {
         updateBlocker(.secureInput, isSecureInputActive())
         updateBlocker(.conflict, isConflictActive())
+        if isWarm && !audio.isWarm {
+            drop(.failed, logMessage: "mic warm ended (engine no longer warm: input change, Bluetooth idle policy or engine stop)")
+            return
+        }
         if case .window(let until) = mode {
             let left = until.timeIntervalSince(now())
             if left <= 0 { drop(.expired); return }
@@ -113,7 +125,7 @@ public final class WarmMicController {
 
     /// The conflict closure is read directly too (a cached flag), so a dictation finishing just
     /// as Wispr Flow appears can't re-arm before the next tick records the blocker.
-    private var canArm: Bool { blockers.isEmpty && !isConflictActive() && (keepReady() || alwaysReady()) }
+    private var canArm: Bool { blockers.isEmpty && !isConflictActive() && !voiceProcessingOn() && (keepReady() || alwaysReady()) }
 
     private func updateBlocker(_ r: Reason, _ active: Bool) {
         if active, !blockers.contains(r) { block(r) }
@@ -135,9 +147,9 @@ public final class WarmMicController {
     }
 
     /// Stop warm mode: engine off (unless recording), ring zeroed + freed.
-    private func drop(_ r: Reason) {
+    private func drop(_ r: Reason, logMessage: String? = nil) {
         audio.leaveWarm()
-        if mode != .off { Log.info("mic warm off: \(r.rawValue)") }
+        if mode != .off { Log.info(logMessage ?? "mic warm off: \(r.rawValue)") }
         mode = .off
         secondsLeft = 0
         lastDrop = r

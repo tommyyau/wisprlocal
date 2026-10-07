@@ -1,5 +1,6 @@
 import CoreAudio
 import Foundation
+import WisprLocalCore
 
 /// Microphones known to Core Audio. WisprLocal records from the Mac's *default input*
 /// (AVAudioEngine follows it and the recorder rebuilds on a device change), so choosing a mic
@@ -29,13 +30,7 @@ enum InputDevices {
     }
 
     static func defaultInputID() -> AudioDeviceID? {
-        var addr = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDefaultInputDevice,
-                                              mScope: kAudioObjectPropertyScopeGlobal,
-                                              mElement: kAudioObjectPropertyElementMain)
-        var id = AudioDeviceID(0)
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-        guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &addr, 0, nil, &size, &id) == noErr, id != 0 else { return nil }
-        return id
+        InputTransportProbe.defaultInputID()
     }
 
     /// Only from an explicit user choice in the Microphone picker.
@@ -73,12 +68,6 @@ enum InputDevices {
     }
 
     private static func transport(_ id: AudioDeviceID) -> UInt32 {
-        var addr = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyTransportType,
-                                              mScope: kAudioObjectPropertyScopeGlobal,
-                                              mElement: kAudioObjectPropertyElementMain)
-        var t: UInt32 = 0
-        var size = UInt32(MemoryLayout<UInt32>.size)
-        _ = AudioObjectGetPropertyData(id, &addr, 0, nil, &size, &t)
-        return t
+        InputTransportProbe.transport(id)
     }
 }

@@ -7,11 +7,13 @@ import Foundation
     var onLevel: ((Float) -> Void)?
     var onMaxDurationReached: (() -> Void)?
     var warm = false, enters = 0, leaves = 0, failEnter = false
+    var vpEnabled = false
     var keepWarmAfterStop = false
     func start() throws {}
     func stop(tail: Duration) async -> [Float] { if !keepWarmAfterStop { warm = false }; return [] }
     func cancel() {}
     func enterWarm() throws {
+        if vpEnabled { throw AudioError.startFailed("warm mode is off while Noise reduction is on") }
         if failEnter { throw AudioError.startFailed("test") }
         enters += 1; warm = true
     }
@@ -85,13 +87,61 @@ import Foundation
 @MainActor @Suite struct WarmMicControllerTests {
     final class Clock { var t = Date(timeIntervalSince1970: 1_000_000) }
 
-    func make(keep: Bool = true, always: Bool = false) -> (WarmMicController, WarmAudioSpy, Clock, (secure: Box, conflict: Box)) {
+    func make(keep: Bool = true, always: Bool = false, vp: Bool = false) -> (WarmMicController, WarmAudioSpy, Clock, (secure: Box, conflict: Box)) {
         let a = WarmAudioSpy(), c = Clock(), s = Box(), k = Box()
         let ctl = WarmMicController(audio: a, keepReady: { keep }, alwaysReady: { always },
-                                    now: { c.t }, isSecureInputActive: { s.on }, isConflictActive: { k.on })
+                                    voiceProcessingOn: { vp }, now: { c.t }, isSecureInputActive: { s.on }, isConflictActive: { k.on })
         return (ctl, a, c, (s, k))
     }
     final class Box { var on = false }
+
+    @Test func voiceProcessingDisablesWindowAfterDictation() {
+        let (w, a, _, _) = make(vp: true)
+        w.start(); w.dictationFinished()
+        #expect(a.enters == 0 && !a.keepWarmAfterStop)
+        #expect(!w.isWarm && !a.warm)
+    }
+
+    @Test func voiceProcessingDisablesAlwaysReadyAndPrivacyRearming() {
+        let (w, a, _, _) = make(always: true, vp: true)
+        w.start()
+        #expect(a.enters == 0 && !a.keepWarmAfterStop)
+        for reason in [WarmMicController.Reason.screenLocked, .sleep, .userSwitched, .conflict, .secureInput] {
+            w.block(reason); w.clear(reason)
+            #expect(a.enters == 0 && !a.keepWarmAfterStop && !w.isWarm)
+        }
+    }
+
+    @Test func voiceProcessingToggleDropsWarmAndRestoresAlwaysReady() {
+        let a = WarmAudioSpy(), vp = Box()
+        let w = WarmMicController(audio: a, keepReady: { true }, alwaysReady: { true },
+                                  voiceProcessingOn: { vp.on })
+        w.start()
+        #expect(w.isWarm && a.enters == 1 && a.keepWarmAfterStop)
+        vp.on = true; w.settingsChanged()
+        #expect(a.leaves == 1 && !w.isWarm && !a.warm && !a.keepWarmAfterStop)
+        vp.on = false; w.settingsChanged()
+        #expect(w.isWarm && a.enters == 2 && a.keepWarmAfterStop)
+    }
+
+    @Test func voiceProcessingToggleRestoresWindowOnlyAfterDictation() {
+        let a = WarmAudioSpy(), vp = Box()
+        let w = WarmMicController(audio: a, keepReady: { true }, alwaysReady: { false },
+                                  voiceProcessingOn: { vp.on })
+        w.dictationFinished()
+        vp.on = true; w.settingsChanged()
+        #expect(a.leaves == 1 && !w.isWarm && !a.keepWarmAfterStop)
+        vp.on = false; w.settingsChanged()
+        #expect(a.enters == 1 && !w.isWarm && a.keepWarmAfterStop)
+        w.dictationFinished()
+        #expect(a.enters == 2 && w.isWarm)
+    }
+
+    @Test func defaultLaunchDoesNotArmWindow() {
+        let (w, a, _, _) = make()
+        w.start()
+        #expect(a.enters == 0 && !w.isWarm && a.keepWarmAfterStop)
+    }
 
     @Test func windowAfterDictationThenExpiryStopsEngine() {
         let (w, a, c, _) = make()
@@ -156,11 +206,42 @@ import Foundation
         #expect(w.mode == .window(until: c.t.addingTimeInterval(60)))
     }
 
+    @Test(arguments: [false, true])
+    func releasedWarmEngineDropsControllerAndMenu(always: Bool) {
+        let (w, a, _, _) = make(always: always)
+        if always { w.start() } else { w.dictationFinished() }
+        #expect(w.isWarm && a.enters == 1)
+        a.warm = false  // recorder releases after default input changes to Bluetooth
+        w.tick()
+        #expect(w.mode == .off && !w.isWarm && w.secondsLeft == 0 && w.lastDrop == .failed)
+        #expect(a.leaves == 1 && a.enters == 1 && !a.warm)
+        w.tick()
+        #expect(a.enters == 1 && a.leaves == 1, "Later ticks must not re-arm or repeatedly drop")
+        // AppController maps .off to a nil micReady menu snapshot.
+        let ready: MenuSnapshot.MicReady? = switch w.mode {
+        case .off: nil
+        case .always: .always
+        case .window: .window(secondsLeft: w.secondsLeft)
+        }
+        let snapshot = MenuSnapshot(micReady: ready)
+        #expect(ready == nil && MenuBarIconState.resolve(snapshot) == .idle)
+        #expect(MenuAttention.resolve(snapshot)?.action != .stopMic)
+    }
+
     @Test func failedStartIsReported() {
         let (w, a, _, _) = make()
         a.failEnter = true
         w.dictationFinished()
         #expect(w.mode == .off && w.lastDrop == .failed)
+    }
+
+    @Test(arguments: [false, true]) func voiceProcessingRefusalDropsWarmAsFailed(always: Bool) {
+        let (w, a, _, _) = make(always: always)
+        // The recorder can observe VP before the controller's setting closure does.
+        a.vpEnabled = true
+        if always { w.start() } else { w.dictationFinished() }
+        #expect(w.mode == .off && w.lastDrop == .failed && w.secondsLeft == 0)
+        #expect(!a.warm && a.enters == 0 && a.leaves == 1)
     }
 }
 

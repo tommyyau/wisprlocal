@@ -116,6 +116,7 @@ final class AppController {
         let settings = self.settings, conflicts = self.conflicts
         warmMic = WarmMicController(audio: recorder,
                                     keepReady: { settings.keepMicReady }, alwaysReady: { settings.alwaysMicReady },
+                                    voiceProcessingOn: { [settings] in settings.voiceProcessingEnabled },
                                     isSecureInputActive: { SystemSecureInput().isSecureInputActive },
                                     isConflictActive: { conflicts.holdingOff })
     }
@@ -411,6 +412,7 @@ final class AppController {
     func setVoiceProcessing(_ on: Bool) {
         settings.voiceProcessingEnabled = on
         recorder.setVoiceProcessingEnabled(on)
+        warmMic.settingsChanged()
     }
 
     func setConsumeGlobe(_ on: Bool) {

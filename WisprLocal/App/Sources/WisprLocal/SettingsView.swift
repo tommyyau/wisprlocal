@@ -237,9 +237,12 @@ struct MicrophoneSettings: View {
                     }.controlSize(.small)
                 }
             }
-            SettingRow(title: "Microphone readiness", why: model.micReadiness.caption, info: .micReady) {
+            SettingRow(title: "Microphone readiness", why: model.settings.voiceProcessingEnabled
+                       ? "While Noise reduction is on, the mic turns off as soon as you stop talking, so other audio isn't turned down. The first word can be slower to catch."
+                       : model.micReadiness.caption, info: .micReady) {
                 ChoiceMenu(selection: model.micReadiness, options: MicReadiness.allCases, title: \.title,
                            label: "Microphone readiness", width: 250, choose: model.setMicReadiness)
+                    .disabled(model.settings.voiceProcessingEnabled)
             }
             SpeechModelRow(model: model)
         }

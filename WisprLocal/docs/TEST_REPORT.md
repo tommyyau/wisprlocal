@@ -2,7 +2,7 @@
 
 WisprLocal (formerly WisprLite) is a native macOS 26 dictation app with local speech recognition, cleanup, learning and history, an independent alternative to Wispr Flow: hold Globe/Fn, speak, and cleaned-up text appears at the cursor. This report consolidates every spike, benchmark, review round and automated test behind the design. S1, S1b and S4 measurements come from committed results files; P1, P2 and P2.1 measurements and review counts come from the task document, rather than committed raw results. Where a figure was not measured, it says so.
 
-Snapshot date: 2026-10-02. Last updated: 2026-10-05. Test record: 911 tests in 157 suites passed on 2026-10-05 (network-denied run: 911 passed; socket-dependent and opt-in tests are skipped).
+Snapshot date: 2026-10-02. Last updated: 2026-10-07. Test record: 924 tests in 158 suites passed on 2026-10-07 (network-denied run: 924 passed; socket-dependent and opt-in tests are skipped).
 
 ## 1. Headline numbers
 
@@ -22,7 +22,7 @@ Snapshot date: 2026-10-02. Last updated: 2026-10-05. Test record: 911 tests in 1
 | AI cleanup latency (Foundation Models) | Synthetic corpus, prewarmed: p50 413 ms, p95 1,576 ms, max 3,005 ms (n=40). Production cleaner re-run: S3 model p50 312 ms / p95 1,532 ms; realistic input p50 264 ms / p95 365 ms | P2 notes, P2.1 re-run |
 | Warm release-to-insert (Parakeet Ultra, fixture, release build) | **558 ms → 75 ms p50** (p95 682 → 78 ms) after skipping the model on already-clean text | P2.1 profile (Section 6.6) |
 | Cleanup safety | The guard rejected the two tested injection cases; resistance is tested, not absolute (see Known limitations) | Section 6 |
-| Automated tests | **911 tests in 157 suites passed on 2026-10-05 (network-denied run: 911 passed; socket-dependent and opt-in tests are skipped)** (`scripts/test_offline.sh`); `scripts/test_inventory.sh` prints the current inventory | Section 9 |
+| Automated tests | **924 tests in 158 suites passed on 2026-10-07 (network-denied run: 924 passed; socket-dependent and opt-in tests are skipped)** (`scripts/test_offline.sh`); `scripts/test_inventory.sh` prints the current inventory | Section 9 |
 | Network use at runtime | Remote Macs bridge only (Network.framework), allow-listed | S1, S1b, `test_offline.sh` |
 
 ## 2. Test environment and honest limits
@@ -194,7 +194,7 @@ The S1b spike measured a longer first-ever compile (Ultra 18.0 s, v2 22.7 s), an
 Short phrases are the worst case (a lost 0.2 s is a whole word), and v2 is more sensitive to it than Ultra. Synthetic voices, small set.
 
 **Fix (chosen: "warm after use, plus an option").**
-- **Ready for 60 s after dictating**, default ON: after each dictation the engine keeps running in the current voice-processing mode, feeding a 500 ms in-memory ring (`PreRollRing`). A dictation that starts inside the window gets the last **300 ms** prepended (ring and recording share one lock, so there is no gap or overlap) and restarts the window when it finishes. On expiry the engine stops (the mic dot goes off) and the ring is zeroed and freed.
+- **Ready for 60 s after dictating**, default ON: with Noise reduction off, after each dictation the engine keeps running without voice processing, feeding a 500 ms in-memory ring (`PreRollRing`). A dictation that starts inside the window gets the last **300 ms** prepended (ring and recording share one lock, so there is no gap or overlap) and restarts the window when it finishes. On expiry the engine stops (the mic dot goes off) and the ring is zeroed and freed.
 - **Always on**, default OFF.
 - **Privacy (STRUCTURAL, `WarmMicTests`, `PreRollPrivacyTests`):** the ring is read only by `SampleSink.begin(preRoll:)` when a dictation starts; a source scan fails if ring code touches files, settings, history, debug recordings, serialisation or logs, or if ring symbols appear outside the two audio files. Warm mode drops at once, zeroing the ring, on screen lock, sleep, fast user switch, the Wispr Flow conflict gate, secure input (polled every 0.5 s; dictation is refused while it's active anyway), app quit and the menu's Stop action; nothing re-arms while a blocker holds. The menu bar shows **Mic Ready · 0:42 — Stop** (or **Mic Ready — Stop**) while the dot is on. Prepended pre-roll becomes part of that dictation's audio, like the rest of the recording.
 - **HUD cue:** a recording from a COLD engine shows a dim pulsing dot until the first non-zero audio arrives, then live bars; a warm start shows bars at once (`RecordingCueTests`).
@@ -206,7 +206,7 @@ Short phrases are the worst case (a lost 0.2 s is a whole word), and v2 is more 
 | Voice processing off | ~9.4 % | 0.6 % | **~10 %** |
 | Voice processing on | ~6.1 % | 14.5 % | **~20 %** |
 
-With the 60 s window this is paid only for a minute after each dictation; with Always on it is paid continuously.
+With the 60 s window the ~10 % voice-processing-off cost is paid only for a minute after each dictation; with Always on it is paid continuously. The voice-processing-on row is a historical harness measurement: Noise reduction now runs only while recording and disables both readiness modes, including Always on.
 
 Not yet measured: the clipping and the fix with a real voice and microphone in the installed app (pending, with the real-voice A/B above).
 
@@ -497,9 +497,9 @@ Mutation test: disabling the preamble, `novelNumber` and correction-tail checks 
 
 ### 2026-10-05 verification
 
-Verified: 911 tests in 157 suites passed on 2026-10-05 (network-denied run: 911 passed; socket-dependent and opt-in tests are skipped).
+Verified: 924 tests in 158 suites passed on 2026-10-07 (network-denied run: 924 passed; socket-dependent and opt-in tests are skipped).
 
-- Three full `swift test` runs passed without flakes. `scripts/test_inventory.sh` reports **911 tests / 157 suites**.
+- Three full `swift test` runs passed without flakes. `scripts/test_inventory.sh` reports **924 tests / 158 suites**.
 - `swift build --build-tests`: **0 warnings**. `scripts/privacy_scan.sh`: **OK (377 tracked files)**. No manual tests were performed in this final pass.
 
 ### Earlier 2026-10-05 build verification (before the final pass)
@@ -633,6 +633,14 @@ The model choice above rests on synthetic voices. Real-voice results for both mo
 | Non-English detections | | |
 | Empty outputs | | |
 | Average latency | | |
+
+**Bluetooth (AirPods) cold start — PENDING (not yet run)**
+
+With AirPods selected as the input, Noise reduction off and the default Ready for 60 s after dictating:
+
+- Check first-word capture and measure key-down-to-recording latency on the first dictation after the readiness window closes.
+- Check whether the A2DP→HFP switch triggers an audio-engine configuration change or a gap mid-recording.
+- Check that music quality returns after the readiness window closes.
 
 **C. Manual GUI checklist**
 
