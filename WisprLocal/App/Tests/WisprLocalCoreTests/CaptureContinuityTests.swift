@@ -172,34 +172,23 @@ import Testing
         return ""
     }
 
-    @Test func voiceProcessingIsBuiltOnlyForCapture() throws {
-        let raw = try String(contentsOf: PreRollPrivacyTests.sources.appendingPathComponent("WisprLocalCore/Audio/AudioRecorder.swift"),
-                             encoding: .utf8)
-        // Ignore prose and formatting; inspect executable branches and balanced function bodies.
-        let source = raw.replacingOccurrences(of: #"//[^\n]*|/\*[\s\S]*?\*/"#, with: "", options: .regularExpression)
-            .filter { !$0.isWhitespace }
+    @Test func voiceProcessingFollowsCaptureAndReadinessOnly() throws {
+        let raw = try String(contentsOf: PreRollPrivacyTests.sources.appendingPathComponent("WisprLocalCore/Audio/AudioRecorder.swift"), encoding: .utf8)
+        let source = raw.replacingOccurrences(of: #"//[^\n]*|/\*[\s\S]*?\*/"#, with: "", options: .regularExpression).filter { !$0.isWhitespace }
         let recorder = try #require(source.range(of: "finalclassAudioRecorder:"))
         let implementation = String(source[recorder.lowerBound...])
-        let enable = "setVoiceProcessingEnabled(true)"
-        let captureBuild = "buildOnQueue(voiceProcessing:vpEnabled)"
-        let recordingBuild = "buildOnQueue(voiceProcessing:recording&&vpEnabled)"
-        #expect(source.components(separatedBy: enable).count == 2)
+        let configuredBuild = "buildOnQueue(voiceProcessing:vpEnabled)"
+        for signature in ["funcstartOnQueue()throws", "funcenterWarm()throws", "funchandleConfigurationChange()"] {
+            #expect(try block(in: implementation, after: signature).contains(configuredBuild))
+        }
+        let warm = try block(in: implementation, after: "funcenterWarm()throws")
+        #expect(warm.contains("guardIdleInputPolicy.canKeepWarm(vpEnabled:vpEnabled,transport:currentInputTransport())else{"))
+        let stop = try block(in: implementation, after: "funcstopOnQueue()")
+        let allowed = try block(in: stop, after: "ifkeepWarm&&running&&IdleInputPolicy.canKeepWarm(vpEnabled:vpEnabled,transport:currentInputTransport())")
+        #expect(allowed == "sink.enableRing()", "Raw and VP share the readiness ring without rebuilding")
         let build = try block(in: implementation, after: "funcbuildOnQueue(voiceProcessing:Bool)")
-        let captureBranch = try block(in: build, after: "ifvoiceProcessing")
-        #expect(captureBranch.contains(enable), "VPIO enable must be inside the capture-only branch")
-        #expect(!build.contains("idleReset"), "An explicit build must never idle-release the graph")
-        #expect(source.components(separatedBy: captureBuild).count == 2)
-        let start = try block(in: implementation, after: "funcstart()throws")
-        #expect(start.contains(captureBuild), "Only start() may request VP as configured unconditionally")
-        let change = try block(in: implementation, after: "funchandleConfigurationChange()")
-        #expect(change.contains(recordingBuild), "Device changes may enable VPIO only during recording")
-        #expect(source.components(separatedBy: recordingBuild).count == 2)
-        // Only start and a mid-recording rebuild may pass anything other than literal false.
-        let otherBuilds = implementation.replacingOccurrences(of: captureBuild, with: "")
-            .replacingOccurrences(of: recordingBuild, with: "")
-            .replacingOccurrences(of: "funcbuildOnQueue(voiceProcessing:Bool)", with: "")
-        #expect(otherBuilds.range(of: #"buildOnQueue\(voiceProcessing:(?!false\))"#, options: .regularExpression) == nil,
-                "Only start() and the mid-recording configuration rebuild may request VP")
+        #expect(try block(in: build, after: "ifvoiceProcessing").contains("setVoiceProcessingEnabled(true)"))
+        #expect(!build.contains("idleReset"))
     }
 
     @Test func idlePreparationClosesBluetoothAndVoiceProcessingInput() throws {
@@ -227,7 +216,7 @@ import Testing
         #expect(query.contains("dispatchPrecondition(condition:.onQueue(q))"))
         #expect(query.contains("lettransport=inputTransport()"), "Query the injected transport at decision time")
         #expect(!query.contains("inputNode"))
-        let start = try block(in: source, after: "funcstart()throws")
+        let start = try block(in: source, after: "funcstartOnQueue()throws")
         #expect(start.components(separatedBy: "if" + policy + "||vpActive{try?idleReset()}").count == 3,
                 "Both failed-start release paths must use the idle policy")
         let change = try block(in: source, after: "funchandleConfigurationChange()")
@@ -242,19 +231,11 @@ import Testing
         let recorder = try #require(normalized.range(of: "finalclassAudioRecorder:"))
         let source = String(normalized[recorder.lowerBound...])
         let warm = try block(in: source, after: "funcenterWarm()throws")
-        #expect(warm.contains("guard!vpEnabledelse{"))
-        #expect(warm.contains("trybuildOnQueue(voiceProcessing:false)"))
+        #expect(warm.contains("guardIdleInputPolicy.canKeepWarm(vpEnabled:vpEnabled,transport:currentInputTransport())else{"))
+        #expect(warm.contains("trybuildOnQueue(voiceProcessing:vpEnabled)"))
         #expect(!warm.contains("idleReset"))
         let build = try block(in: source, after: "funcbuildOnQueue(voiceProcessing:Bool)")
         #expect(!build.contains("idleReset") && !build.contains("keepInputClosedWhileIdle"))
-        let change = try block(in: source, after: "funchandleConfigurationChange()")
-        let condition = "if!recording&&IdleInputPolicy.keepInputClosedWhileIdle(vpEnabled:vpEnabled,transport:currentInputTransport())"
-        let release = try block(in: change, after: condition)
-        #expect(release == "try?idleReset()return", "Policy release must return before any engine start")
-        let decision = try #require(change.range(of: condition))
-        let restart = try #require(change.range(of: "trystartEngine()"))
-        #expect(decision.lowerBound < restart.lowerBound)
-        #expect(change.contains("trybuildOnQueue(voiceProcessing:recording&&vpEnabled);trystartEngine()"))
         let engineStart = try block(in: source, after: "funcstartEngine()throws")
         let guardRange = try #require(engineStart.range(of: "guardtapInstalledelse{throwAudioError.startFailed(\"inputgraphisnotprepared\")}"))
         let actualStart = try #require(engineStart.range(of: "tryengine.start()"))
@@ -386,7 +367,7 @@ struct RangeTrimmer: SpeechTrimmer {
     @Test func emptyRingPrependsNothing() {
         let sink = SampleSink(maxSamples: 100_000)
         sink.enableRing()
-        #expect(sink.beginRecording(engineRunning: true) == true)
+        #expect(sink.beginRecording(engineRunning: true) == false)
         #expect(sink.end().isEmpty)
     }
 

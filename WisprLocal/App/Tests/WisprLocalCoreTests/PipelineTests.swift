@@ -28,12 +28,12 @@ import Foundation
                         transcriber: FakeTranscriber? = nil, ready: Bool = true,
                         debugRecordings: DebugRecordingStore? = nil,
                         dictionary: DictionaryStore = tempDictionary(),
-                        strategy: InsertionStrategy = .paste) async -> (PipelineEnv, DictationPipeline) {
+                        strategy: InsertionStrategy = .paste, audio: AudioCapturing? = nil) async -> (PipelineEnv, DictationPipeline) {
     let env = PipelineEnv(text: text, speech: speech, transcriber: transcriber)
     let detector = ConflictDetector(runningApps: { [unowned env] in env.apps }, fnUsageReader: { 0 })
     let inserter = env.inserter
     let p = DictationPipeline(
-        audio: env.audio, trimmer: FakeTrimmer(hasSpeech: speech), transcriber: env.transcriber,
+        audio: audio ?? env.audio, trimmer: FakeTrimmer(hasSpeech: speech), transcriber: env.transcriber,
         dictionary: dictionary, cleaner: RuleCleaner(), gate: detector,
         secureInput: env.secure, clipboard: env.clipboard,
         inserterFor: { _ in (inserter, strategy) }, history: env.history,

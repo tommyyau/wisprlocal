@@ -7,18 +7,23 @@ import Foundation
     var onLevel: ((Float) -> Void)?
     var onMaxDurationReached: (() -> Void)?
     var warm = false, enters = 0, leaves = 0, failEnter = false
+    let sink = SampleSink(maxSamples: 1_000_000)
     var vpEnabled = false
+    var vpRequested: [Bool] = []
+    var vpActive = false
+    var captureVoiceProcessingActive: Bool? { vpActive }
     var keepWarmAfterStop = false
     func start() throws {}
     func stop(tail: Duration) async -> [Float] { if !keepWarmAfterStop { warm = false }; return [] }
     func cancel() {}
     func enterWarm() throws {
-        if vpEnabled { throw AudioError.startFailed("warm mode is off while Noise reduction is on") }
         if failEnter { throw AudioError.startFailed("test") }
-        enters += 1; warm = true
+        vpRequested.append(vpEnabled); vpActive = vpEnabled
+        enters += 1; warm = true; sink.enableRing()
     }
-    func leaveWarm() { leaves += 1; warm = false }
+    func leaveWarm() { leaves += 1; warm = false; vpActive = false; sink.disableRing() }
     var isWarm: Bool { warm }
+    var hasWarmAudio: Bool { warm && sink.hasWarmAudio }
 }
 
 @Suite struct PreRollTests {
@@ -89,52 +94,53 @@ import Foundation
 
     func make(keep: Bool = true, always: Bool = false, vp: Bool = false) -> (WarmMicController, WarmAudioSpy, Clock, (secure: Box, conflict: Box)) {
         let a = WarmAudioSpy(), c = Clock(), s = Box(), k = Box()
+        a.vpEnabled = vp
         let ctl = WarmMicController(audio: a, keepReady: { keep }, alwaysReady: { always },
                                     voiceProcessingOn: { vp }, now: { c.t }, isSecureInputActive: { s.on }, isConflictActive: { k.on })
         return (ctl, a, c, (s, k))
     }
     final class Box { var on = false }
 
-    @Test func voiceProcessingDisablesWindowAfterDictation() {
-        let (w, a, _, _) = make(vp: true)
-        w.start(); w.dictationFinished()
-        #expect(a.enters == 0 && !a.keepWarmAfterStop)
-        #expect(!w.isWarm && !a.warm)
+    @Test func voiceProcessingUsesReadinessWindowAndExpires() {
+        let (w, a, c, _) = make(vp: true)
+        w.start()
+        #expect(!w.isWarm && a.keepWarmAfterStop)
+        w.dictationFinished()
+        #expect(w.isWarm && a.warm && w.secondsLeft == 60)
+        #expect(a.vpRequested == [true] && a.vpActive)
+        c.t += 60; w.tick()
+        #expect(!w.isWarm && !a.warm && w.lastDrop == .expired)
+        #expect(!a.vpActive)
     }
 
-    @Test func voiceProcessingDisablesAlwaysReadyAndPrivacyRearming() {
+    @Test func warmVoiceProcessingPrependsAndDropsMemoryOnlyAudio() {
+        let (w, a, _, _) = make(vp: true)
+        w.dictationFinished()
+        #expect(a.captureVoiceProcessingActive == true)
+        let before = PreRollTests.ramp(10_000, from: 1)
+        before.withUnsafeBufferPointer { _ = a.sink.append($0) }
+        #expect(a.sink.beginRecording(engineRunning: a.isWarm))
+        let live = PreRollTests.ramp(1600, from: 10_001)
+        live.withUnsafeBufferPointer { _ = a.sink.append($0) }
+        #expect(a.sink.end() == Array(before.suffix(4800)) + live)
+        w.stopNow()
+        #expect(!a.sink.ringEnabled && a.sink.ringSnapshotForTesting().isEmpty)
+    }
+
+    @Test func voiceProcessingAlwaysReadyRearmsAfterPrivacyBlock() {
         let (w, a, _, _) = make(always: true, vp: true)
         w.start()
-        #expect(a.enters == 0 && !a.keepWarmAfterStop)
-        for reason in [WarmMicController.Reason.screenLocked, .sleep, .userSwitched, .conflict, .secureInput] {
-            w.block(reason); w.clear(reason)
-            #expect(a.enters == 0 && !a.keepWarmAfterStop && !w.isWarm)
-        }
+        #expect(w.isWarm && a.keepWarmAfterStop)
+        w.block(.screenLocked)
+        #expect(!w.isWarm && !a.keepWarmAfterStop)
+        w.clear(.screenLocked)
+        #expect(w.mode == .always && a.warm)
     }
 
-    @Test func voiceProcessingToggleDropsWarmAndRestoresAlwaysReady() {
-        let a = WarmAudioSpy(), vp = Box()
-        let w = WarmMicController(audio: a, keepReady: { true }, alwaysReady: { true },
-                                  voiceProcessingOn: { vp.on })
-        w.start()
-        #expect(w.isWarm && a.enters == 1 && a.keepWarmAfterStop)
-        vp.on = true; w.settingsChanged()
-        #expect(a.leaves == 1 && !w.isWarm && !a.warm && !a.keepWarmAfterStop)
-        vp.on = false; w.settingsChanged()
-        #expect(w.isWarm && a.enters == 2 && a.keepWarmAfterStop)
-    }
-
-    @Test func voiceProcessingToggleRestoresWindowOnlyAfterDictation() {
-        let a = WarmAudioSpy(), vp = Box()
-        let w = WarmMicController(audio: a, keepReady: { true }, alwaysReady: { false },
-                                  voiceProcessingOn: { vp.on })
-        w.dictationFinished()
-        vp.on = true; w.settingsChanged()
-        #expect(a.leaves == 1 && !w.isWarm && !a.keepWarmAfterStop)
-        vp.on = false; w.settingsChanged()
-        #expect(a.enters == 1 && !w.isWarm && a.keepWarmAfterStop)
-        w.dictationFinished()
-        #expect(a.enters == 2 && w.isWarm)
+    @Test func voiceProcessingDoesNotOverrideReadinessOff() {
+        let (w, a, _, _) = make(keep: false, vp: true)
+        w.start(); w.dictationFinished()
+        #expect(!w.isWarm && !a.keepWarmAfterStop && a.enters == 0)
     }
 
     @Test func defaultLaunchDoesNotArmWindow() {
@@ -155,11 +161,14 @@ import Foundation
         #expect(w.mode == .off && !a.warm && a.leaves == 1 && w.lastDrop == .expired)
     }
 
-    @Test(arguments: [WarmMicController.Reason.screenLocked, .sleep, .userSwitched, .conflict, .secureInput, .quit])
-    func everyPrivacyTriggerDropsImmediately(_ r: WarmMicController.Reason) {
-        let (w, a, _, _) = make()
+    @Test(arguments: [WarmMicController.Reason.screenLocked, .sleep, .userSwitched, .conflict, .secureInput, .quit], [false, true])
+    func everyPrivacyTriggerDropsImmediately(_ r: WarmMicController.Reason, vp: Bool) {
+        let (w, a, _, _) = make(vp: vp)
         w.dictationFinished()
+        [Float](repeating: 0.31337, count: 8000).withUnsafeBufferPointer { _ = a.sink.append($0) }
+        #expect(a.sink.ringSnapshotForTesting().count == 8000)
         w.block(r)
+        #expect(!a.sink.ringEnabled && a.sink.ringSnapshotForTesting().isEmpty)
         #expect(w.mode == .off && !a.warm && a.leaves == 1)
         #expect(!a.keepWarmAfterStop, "a blocked mic never stays on after the next stop")
         w.dictationFinished()
@@ -235,10 +244,10 @@ import Foundation
         #expect(w.mode == .off && w.lastDrop == .failed)
     }
 
-    @Test(arguments: [false, true]) func voiceProcessingRefusalDropsWarmAsFailed(always: Bool) {
+    @Test(arguments: [false, true]) func warmRecorderRefusalDropsWarmAsFailed(always: Bool) {
         let (w, a, _, _) = make(always: always)
-        // The recorder can observe VP before the controller's setting closure does.
-        a.vpEnabled = true
+        // Device or engine refusal must drop the readiness state.
+        a.failEnter = true
         if always { w.start() } else { w.dictationFinished() }
         #expect(w.mode == .off && w.lastDrop == .failed && w.secondsLeft == 0)
         #expect(!a.warm && a.enters == 0 && a.leaves == 1)
@@ -246,10 +255,11 @@ import Foundation
 }
 
 /// Cold vs warm HUD cue (the pill's "starting" dot).
-@MainActor @Suite struct RecordingCueTests {
+@MainActor @Suite(.timeLimit(.minutes(1))) struct RecordingCueTests {
     @Test func coldStartShowsStartingUntilAudioFlows() async {
         let (e, p) = await makeEnv()
         e.audio.warmStart = false
+        e.audio.emitsCaptureOnImmediateStart = false
         p.handle(.startRecording)
         #expect(p.recordingCue == .starting)
         e.audio.onLevel?(0)                             // muted start-up frames
@@ -261,11 +271,36 @@ import Foundation
         p.handle(.cancelRecording)
     }
 
-    @Test func warmStartIsLiveImmediately() async {
+    @Test func runningEngineWithZeroRingShowsStarting() async {
+        let audio = WarmAudioSpy()
+        try? audio.enterWarm()
+        [Float](repeating: 0, count: 8000).withUnsafeBufferPointer { _ = audio.sink.append($0) }
+        #expect(audio.isWarm && !audio.hasWarmAudio)
+        #expect(!audio.sink.beginRecording(engineRunning: true))
+        let (e, p) = await makeEnv(audio: audio)
+        p.handle(.startRecording)
+        #expect(p.recordingCue == .starting)
+        audio.onLevel?(0.12)
+        #expect(p.recordingCue == .live)
+        p.handle(.cancelRecording)
+        audio.leaveWarm()
+        #expect(e.history.entries.isEmpty)
+    }
+
+    @Test func warmStartShowsLiveImmediately() async {
         let (e, p) = await makeEnv()
         e.audio.warmStart = true
+        let gate = HangGate(); e.audio.startGate = gate
+        defer { gate.release() }
         p.handle(.startRecording)
         #expect(p.recordingCue == .live)
+        e.audio.onLevel?(0)
+        #expect(p.recordingCue == .live)
+        e.audio.onLevel?(0.12)
+        #expect(p.recordingCue == .live)
+        #expect(!e.audio.startCompleted && e.audio.startCompletion != nil)
+        gate.release()
+        await waitForTest("warm start gate completion") { e.audio.startCompleted }
         p.handle(.cancelRecording)
     }
 }
@@ -302,18 +337,20 @@ import Foundation
 
     /// Runtime spy: a warm period with no dictation leaves nothing in history or debug recordings,
     /// and the marker audio is gone after the drop.
-    @Test @MainActor func warmPeriodWithoutDictationPersistsNothing() async throws {
+    @Test(arguments: [false, true]) @MainActor func warmPeriodWithoutDictationPersistsNothing(vp: Bool) async throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("prespy-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: dir) }
         let debug = DebugRecordingStore(directory: dir, isEnabled: { true })
-        let (e, p) = await makeEnv(debugRecordings: debug)
-        let sink = SampleSink(maxSamples: 1_000_000)
-        sink.enableRing()
+        let audio = WarmAudioSpy(); audio.vpEnabled = vp
+        let warm = WarmMicController(audio: audio, keepReady: { true }, alwaysReady: { false }, voiceProcessingOn: { vp })
+        let (e, p) = await makeEnv(debugRecordings: debug, audio: audio)
+        warm.dictationFinished()
+        let sink = audio.sink
         let marker = [Float](repeating: 0.31337, count: 8000)
         marker.withUnsafeBufferPointer { _ = sink.append($0) }
         // A lone tap (start + cancel) and an expiry: the ring is never read.
         p.handle(.startRecording); p.handle(.cancelRecording)
-        sink.disableRing()
+        warm.stopNow()
         await p.flushDebugRecordings()
         #expect(e.history.entries.isEmpty)
         #expect(((try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []).isEmpty)

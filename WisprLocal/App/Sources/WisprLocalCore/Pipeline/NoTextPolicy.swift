@@ -43,6 +43,8 @@ public enum NoTextPolicy {
     public static let loudRoomFloorDBFS = -45.0
 
     public enum Reason: String, Sendable {
+        /// A deliberate hold ended before the microphone delivered any real audio.
+        case micNoAudio = "The mic didn't send any audio"
         /// The speech model returned no words for ≥ `minSpeech` of VAD speech.
         case asrEmpty = "asr:empty"
         /// VAD found no speech in a long, loud capture.

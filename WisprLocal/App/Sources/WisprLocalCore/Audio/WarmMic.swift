@@ -8,7 +8,7 @@ import Observation
 ///   each dictation; a dictation inside the window gets the last 300 ms prepended and restarts
 ///   the window when it finishes. On expiry the engine stops and the ring is zeroed and freed.
 /// - "Always ready (mic stays on)" (default OFF): warm whenever allowed.
-/// Noise reduction disables both modes so voice processing cannot duck other audio while idle.
+/// Noise reduction follows the same readiness window; Bluetooth inputs may stay ready only with noise reduction off.
 ///
 /// PRIVACY (STRUCTURAL): warm mode is dropped at once, and the ring zeroed, on screen lock,
 /// sleep, fast user switch, the Wispr Flow conflict gate, secure input, app quit, or "Stop now".
@@ -125,7 +125,7 @@ public final class WarmMicController {
 
     /// The conflict closure is read directly too (a cached flag), so a dictation finishing just
     /// as Wispr Flow appears can't re-arm before the next tick records the blocker.
-    private var canArm: Bool { blockers.isEmpty && !isConflictActive() && !voiceProcessingOn() && (keepReady() || alwaysReady()) }
+    private var canArm: Bool { blockers.isEmpty && !isConflictActive() && (keepReady() || alwaysReady()) }
 
     private func updateBlocker(_ r: Reason, _ active: Bool) {
         if active, !blockers.contains(r) { block(r) }

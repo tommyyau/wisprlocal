@@ -156,7 +156,7 @@ final class FailingTranscriber: Transcriber, Sendable {
 
 /// BUG: the menu kept "Switching to Noisy room model…" after the switch finished. The status is
 /// now derived from the pipeline's model state, so it clears on success, failure and A→B→A.
-@Suite struct ModelSwitchStatusTests {
+@Suite(.timeLimit(.minutes(1))) struct ModelSwitchStatusTests {
     @MainActor static func snapshot(_ p: DictationPipeline) -> MenuSnapshot {
         MenuSnapshot(modelFailed: p.modelError != nil, modelLoading: p.isModelLoading, recording: p.status.isRecording)
     }
@@ -205,7 +205,7 @@ final class FailingTranscriber: Transcriber, Sendable {
         let v2 = ModeTranscriber("v2"), ultra = ModeTranscriber("ultra", gatedPrepare: true)
         let (_, p) = await makeModeEnv(v2)
         p.switchTranscriber(to: ultra)
-        while ultra.prepares == 0 { try? await Task.sleep(for: .milliseconds(5)) }
+        await waitForTest("Ultra preparation entered") { ultra.prepares > 0 }
         let back = p.switchTranscriber(to: v2)
         #expect(MenuAttention.resolve(Self.snapshot(p)) == .loadingModel)
         await ultra.open()

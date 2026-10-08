@@ -1,5 +1,6 @@
 import Foundation
 import Synchronization
+import Testing
 @testable import WisprLocalCore
 
 @MainActor final class FakeInserter: TextInserter {
@@ -15,6 +16,7 @@ import Synchronization
 }
 
 @MainActor final class FakeAudio: AudioCapturing {
+    var onNonZeroCapture: (@Sendable () -> Void)?
     var onLevel: ((Float) -> Void)?
     var onCaptureInterrupted: (@MainActor (String) -> Void)?
     func interrupt() { onCaptureInterrupted?("Synthetic device failure") }
@@ -25,7 +27,43 @@ import Synchronization
     /// Simulates a start on an already-running (warm) engine.
     var warmStart = false
     var lastStartWasWarm: Bool { warmStart }
-    func start() throws { started += 1 }
+    var emitsCaptureOnImmediateStart = true
+    var startGate: HangGate?
+    var startCompleted = false
+    var isWarm: Bool { warmStart }
+    var startClock: ManualClock?
+    var startCompletion: (@MainActor @Sendable (Result<Void, Error>) -> Void)?
+    func start(completion: @escaping @MainActor @Sendable (Result<Void, Error>) -> Void) {
+        started += 1
+        if let gate = startGate {
+            startCompletion = completion
+            Task { @MainActor in
+                await gate.wait()
+                finishStart()
+            }
+        } else if let clock = startClock {
+            let deadline = clock.now + .seconds(3)
+            Task { @MainActor in
+                try? await clock.sleep(until: deadline)
+                startCompletion = completion
+            }
+        } else {
+            completion(.success(()))
+            if emitsCaptureOnImmediateStart, !samples.isEmpty { onLevel?(0.5) }
+        }
+    }
+    func finishStart(_ result: Result<Void, Error> = .success(())) {
+        startCompleted = true
+        startCompletion?(result)
+        startCompletion = nil
+    }
+    func start() throws {
+        started += 1
+        if startGate != nil {
+            Issue.record("Synchronous start would block on the closed recorder gate")
+            throw AudioError.startFailed("closed start gate")
+        }
+    }
     func stop(tail: Duration) async -> [Float] { stopped += 1; lastTail = tail; return samples }
     func cancel() { cancelled += 1 }
 }
@@ -145,6 +183,7 @@ func eventually(timeout: Duration = .seconds(30), _ cond: @MainActor () -> Bool)
 /// cancellation and returns only after `release()`.
 final class HangGate: Sendable {
     private let state = Mutex<(open: Bool, waiters: [CheckedContinuation<Void, Never>])>((false, []))
+    var waiterCount: Int { state.withLock { $0.waiters.count } }
     func wait() async {
         await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
             let resumeNow = state.withLock { s -> Bool in
@@ -160,4 +199,16 @@ final class HangGate: Sendable {
         }
         ws.forEach { $0.resume() }
     }
+}
+
+/// Bounded executor polling: a missing callback reports an issue instead of hanging CI.
+@MainActor @discardableResult
+func waitForTest(_ message: String, iterations: Int = 10_000,
+                 _ ready: () -> Bool) async -> Bool {
+    for _ in 0..<iterations {
+        if ready() { return true }
+        await Task.yield()
+    }
+    Issue.record("Timed out waiting for: \(message)")
+    return false
 }

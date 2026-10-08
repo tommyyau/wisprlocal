@@ -2,6 +2,10 @@ import CryptoKit
 import Foundation
 
 public struct StageTimings: Codable, Sendable, Equatable {
+    /// Key-down → published starting HUD; nil for legacy/replayed entries.
+    public var keyDownToHUDMs: Double?
+    /// Key-down → first non-zero captured buffer; nil if capture never began.
+    public var keyDownToCaptureMs: Double?
     public var vadMs: Double = 0
     public var asrMs: Double = 0
     public var dictionaryMs: Double = 0

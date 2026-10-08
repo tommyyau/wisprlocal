@@ -4,7 +4,7 @@ import Foundation
 
 /// The test clock itself is deterministic: `advance` wakes only sleepers already registered and
 /// moves `now` first; `waitForSleepers` / `waitForSleeper(until:)` replace yield or poll loops.
-@MainActor @Suite struct ManualClockTests {
+@MainActor @Suite(.timeLimit(.minutes(1))) struct ManualClockTests {
     @Test func advanceWakesRegisteredSleepersAtTheNewTime() async throws {
         let clock = ManualClock()
         let woke = Task { @MainActor in try await clock.sleep(until: .seconds(5)); return clock.now }

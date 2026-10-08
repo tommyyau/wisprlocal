@@ -2,7 +2,62 @@
 
 WisprLocal (formerly WisprLite) is a native macOS 26 dictation app with local speech recognition, cleanup, learning and history, an independent alternative to Wispr Flow: hold Globe/Fn, speak, and cleaned-up text appears at the cursor. This report consolidates every spike, benchmark, review round and automated test behind the design. S1, S1b and S4 measurements come from committed results files; P1, P2 and P2.1 measurements and review counts come from the task document, rather than committed raw results. Where a figure was not measured, it says so.
 
-Snapshot date: 2026-10-02. Last updated: 2026-10-07. Test record: 924 tests in 158 suites passed on 2026-10-07 (network-denied run: 924 passed; socket-dependent and opt-in tests are skipped).
+Snapshot date: 2026-10-02. Last updated: 2026-10-08. Test record: 936 tests in 160 suites passed on 2026-10-08 (network-denied run: 936 passed; socket-dependent and opt-in tests are skipped).
+
+## Key-down startup regression — 2026-10-08
+
+The regression from abdf91d / 7147a46 moved VPIO setup onto every Noise reduction key-down and disabled the warm window for VP. The fix publishes recording/HUD state before starting through a queue-backed completion; readiness reads use a mutex snapshot. Cold starts show the dim starting cue; an already-warm mic shows live bars immediately, even while start completion is pending. A cold release before capture, including after engine-start completion but before the first real buffer follows the existing quick-tap discard: no cancel sound or history, with the informational chip “Hold until the bars appear” shown once per session for 3 s. Esc remains a real cancellation. Both abandon paths block re-press until a non-cooperative start is stopped.
+
+The owner's decision now keeps the selected VP engine warm under the existing readiness settings: 60 s after dictating, or Always ready. Off remains off. Lock, sleep, user switch, secure input, Wispr Flow conflict and quit drop warmth and zero/free the memory-only ring. Bluetooth/HFP inputs are explicitly excluded from warmth with VP on or off, so idle AirPods retain music mode. Noise reduction remains off by default.
+### Structural metrics and gate
+
+Every live capture carries `latencies.keyDownToHUDMs` (action received to recording/HUD state publication) and `latencies.keyDownToCaptureMs` (action received to first non-zero captured buffer). Both use the injected `PipelineClock`. The first-buffer timestamp is saved before the tap callback hops to the main actor. The history JSONL and debug-recording JSON sidecar share `HistoryEntry`/`StageTimings`, including refusal and cancellation outcomes. Optional values mean unknown: old entries and replay jobs have no key-down; a cancelled/quiet startup may never receive non-zero audio. No missing value is reported as zero.
+
+`StartLatencyTests` uses a continuation gate controlled by the caller to assert that the HUD starting state is published while recorder startup is still pending, and separately that key-down returns control before the gate is released. A synchronous fake-start attempt records an explicit failure instead of blocking the test actor. Manual-clock timings remain useful for timestamp checks, but are not the proof of nonblocking publication. All executor-poll waits are bounded to 10,000 yields with named timeout failures; startup and similar suites have a one-minute time limit. Release/Esc, hands-free, failed-start gesture reset, first-buffer timestamp preservation despite a 1 s UI delay, and persisted debug metadata are covered.
+
+Mutation checks on the final implementation all exited with test failure, never hung: synchronous start reintroduced; cancellation ignores pending start; abandoned-start stop removed. Every mutation was reverted. The removed-stop mutation explicitly reports “Timed out waiting for: abandoned start stopped”. VP readiness tests cover window expiry, Always ready, settings Off, pre-roll sample order, each privacy blocker, and zero/free on drop. Production source gates verify the raw/VP shared stop-to-ring path and reject idle Bluetooth warmth.
+| Final mutation | Result | Wall time including build |
+|---|---|---|
+| Reintroduce synchronous recorder start | FAIL, exit 1; closed-gate synchronous-start issue | 4.12 s |
+| Ignore cancellation during pending start | FAIL, exit 1; recording/cleanup expectations | 4.28 s |
+| Remove stop after abandoned start | FAIL, exit 1; bounded cleanup timeout | 4.28 s |
+
+All three mutation test runs completed in under a second after building; none hit the one-minute suite limit or the external 50 s watchdog. The gate tests use a fail-fast synchronous fake method so a regression cannot deadlock the main actor.
+
+`keyDownToHUDMs` measures state publication, not compositor/pixel presentation. The headless tests exercise the state consumed by the existing HUD observer. No GUI launch, synthetic input events, actual Globe timing, or screen-rendering claim is made.
+
+### Opt-in built-in microphone benchmark
+
+Run from `WisprLocal/App`:
+
+```sh
+WISPRLOCAL_START_BENCH=1 swift test --disable-automatic-resolution --filter StartHardwareBenchmarkTests
+```
+
+Microphone authorization was already granted and the default input transport was **builtIn**. No permission prompt, device change, GUI, playback stimulus, transcription or saved audio was used. All four cells now use production `AudioRecorder`, including its configuration-change observer. Warm cells prime a production dictation, stop with readiness enabled, arm `WarmMicController`'s actual 60 s window, then settle for 1 s before measured key-down. Thus “VP on, warm via readiness window” measures the shipped policy, replacing the previous measurement-only VP graph. The pipeline uses fake models/insertion and discards audio. Engine time includes setup and completion scheduling; first non-zero capture does not include the earlier pre-roll timestamps. HUD time measures state publication.
+
+Measured on this Mac's built-in mic (Apple M5 Pro, macOS 26.6.2), 3 trials per cell:
+
+| VP | State | Engine start ms (trials) | keyDownToCaptureMs (trials) | keyDownToHUDMs (trials) |
+|---|---|---|---|---|
+| Off | Cold | 145.03 / 144.16 / 134.16 | 250.38 / 345.19 / 239.32 | 0.07 / 0.02 / 0.01 |
+| Off | Warm via readiness window | 0.52 / 0.44 / 0.44 | 102.61 / 54.53 / 97.59 | 0.01 / 0.01 / 0.01 |
+| On | Cold | 651.28 / 473.57 / 486.26 | 960.54 / 3595.33 / 2573.58 | 0.01 / 0.01 / 0.01 |
+| On | Warm via readiness window | 0.45 / 0.46 / 0.49 | 96.72 / 43.23 / 44.08 | 0.01 / 0.01 / 0.01 |
+
+All 12 trials received non-zero capture within the 10 s observation bound; the benchmark passed in 19.96 s. Quiet-room VPIO suppression affects first non-zero capture, so these figures **do not measure speech-onset loss**. Cold means a recreated/stopped graph, not a reboot or purged OS cache. No AirPods or after-reboot hardware measurement was performed. The benchmark skips without existing mic authorization or a built-in default input.
+
+### Noise reduction — owner decision implemented
+
+Noise reduction follows the existing microphone readiness setting, keeping VP warm for 60 s after each dictation or continuously with Always ready. The orange mic dot shows during that time; possible VPIO ducking remains a cost. Settings ⓘ text, readiness controls, and the FAQ describe this, with FAQ titles preserved and app/readme answers synchronized. Bluetooth inputs are never held open while idle. Warm raw and VP engines use the same 300 ms prepend and memory-only ring, zeroed and freed on every privacy drop. No offline suppression dependency or model was added.
+
+### Bluetooth finding
+
+Code review: `IdleInputPolicy` releases Bluetooth input engines at rest without touching the replacement `inputNode`. The next `startOnQueue()` creates/accesses `engine.inputNode`, configures VP, prepares, and starts the graph. Thus the input opening that can trigger an AirPods HFP route/profile switch happens **at key-down**, inside the queued start (the OS chooses the route/profile; the app does not explicitly select HFP). That switch can change the device format/engine configuration. The existing `.AVAudioEngineConfigurationChange` observer queues `handleConfigurationChange`; once startup finishes with `recording = true`, a queued change rebuilds/restarts into the same sink, accepting a short gap. Restart failure reports capture interruption and commits collected samples. The observer listens with `object: nil`, so notifications from other engines can also prompt this rebuild. Moving start off main and removing readiness queue waits also removes this UI-blocking route for Bluetooth; hardware transition time and the potential recording gap remain. **No AirPods/HFP measurement**: the default input was built-in and no input device was changed. Existing simulated configuration-change continuity tests passed; physical Bluetooth behavior remains unverified.
+
+### Validation
+
+`swift build --disable-automatic-resolution` passed. Full `swift test --disable-automatic-resolution`: **936 tests in 160 suites passed**. `scripts/test_offline.sh`: **936 tests in 160 suites passed** with networking denied (socket-dependent and opt-in tests skipped). `scripts/check_warnings.sh`: **zero project warnings** in release, debug and test builds. The opt-in hardware suite separately passed **1 test in 1 suite**, covering all 12 hardware trials. No install, GUI launch, push, or synthetic input event was performed.
 
 ## 1. Headline numbers
 
@@ -22,7 +77,7 @@ Snapshot date: 2026-10-02. Last updated: 2026-10-07. Test record: 924 tests in 1
 | AI cleanup latency (Foundation Models) | Synthetic corpus, prewarmed: p50 413 ms, p95 1,576 ms, max 3,005 ms (n=40). Production cleaner re-run: S3 model p50 312 ms / p95 1,532 ms; realistic input p50 264 ms / p95 365 ms | P2 notes, P2.1 re-run |
 | Warm release-to-insert (Parakeet Ultra, fixture, release build) | **558 ms → 75 ms p50** (p95 682 → 78 ms) after skipping the model on already-clean text | P2.1 profile (Section 6.6) |
 | Cleanup safety | The guard rejected the two tested injection cases; resistance is tested, not absolute (see Known limitations) | Section 6 |
-| Automated tests | **924 tests in 158 suites passed on 2026-10-07 (network-denied run: 924 passed; socket-dependent and opt-in tests are skipped)** (`scripts/test_offline.sh`); `scripts/test_inventory.sh` prints the current inventory | Section 9 |
+| Automated tests | **936 tests in 160 suites passed on 2026-10-08 (network-denied run: 936 passed; socket-dependent and opt-in tests are skipped)** (`scripts/test_offline.sh`); `scripts/test_inventory.sh` prints the current inventory | Section 9 |
 | Network use at runtime | Remote Macs bridge only (Network.framework), allow-listed | S1, S1b, `test_offline.sh` |
 
 ## 2. Test environment and honest limits
@@ -194,7 +249,7 @@ The S1b spike measured a longer first-ever compile (Ultra 18.0 s, v2 22.7 s), an
 Short phrases are the worst case (a lost 0.2 s is a whole word), and v2 is more sensitive to it than Ultra. Synthetic voices, small set.
 
 **Fix (chosen: "warm after use, plus an option").**
-- **Ready for 60 s after dictating**, default ON: with Noise reduction off, after each dictation the engine keeps running without voice processing, feeding a 500 ms in-memory ring (`PreRollRing`). A dictation that starts inside the window gets the last **300 ms** prepended (ring and recording share one lock, so there is no gap or overlap) and restarts the window when it finishes. On expiry the engine stops (the mic dot goes off) and the ring is zeroed and freed.
+- **Ready for 60 s after dictating**, default ON: with Noise reduction on or off, after each dictation the selected engine keeps running, feeding a 500 ms in-memory ring (`PreRollRing`). A dictation that starts inside the window gets the last **300 ms** prepended (ring and recording share one lock, so there is no gap or overlap) and restarts the window when it finishes. On expiry the engine stops (the mic dot goes off) and the ring is zeroed and freed.
 - **Always on**, default OFF.
 - **Privacy (STRUCTURAL, `WarmMicTests`, `PreRollPrivacyTests`):** the ring is read only by `SampleSink.begin(preRoll:)` when a dictation starts; a source scan fails if ring code touches files, settings, history, debug recordings, serialisation or logs, or if ring symbols appear outside the two audio files. Warm mode drops at once, zeroing the ring, on screen lock, sleep, fast user switch, the Wispr Flow conflict gate, secure input (polled every 0.5 s; dictation is refused while it's active anyway), app quit and the menu's Stop action; nothing re-arms while a blocker holds. The menu bar shows **Mic Ready · 0:42 — Stop** (or **Mic Ready — Stop**) while the dot is on. Prepended pre-roll becomes part of that dictation's audio, like the rest of the recording.
 - **HUD cue:** a recording from a COLD engine shows a dim pulsing dot until the first non-zero audio arrives, then live bars; a warm start shows bars at once (`RecordingCueTests`).
@@ -206,7 +261,7 @@ Short phrases are the worst case (a lost 0.2 s is a whole word), and v2 is more 
 | Voice processing off | ~9.4 % | 0.6 % | **~10 %** |
 | Voice processing on | ~6.1 % | 14.5 % | **~20 %** |
 
-With the 60 s window the ~10 % voice-processing-off cost is paid only for a minute after each dictation; with Always on it is paid continuously. The voice-processing-on row is a historical harness measurement: Noise reduction now runs only while recording and disables both readiness modes, including Always on.
+With the 60 s window the ~10 % voice-processing-off cost is paid only for a minute after each dictation; with Always on it is paid continuously. The voice-processing-on row is a historical harness measurement; VP now follows the same readiness window and Always on settings, with the associated idle CPU cost while warm. Bluetooth inputs are excluded from idle warmth.
 
 Not yet measured: the clipping and the fix with a real voice and microphone in the installed app (pending, with the real-voice A/B above).
 

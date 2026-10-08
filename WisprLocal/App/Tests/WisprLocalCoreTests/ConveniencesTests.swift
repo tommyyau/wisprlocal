@@ -446,7 +446,7 @@ func freshDefaults() -> UserDefaults {
     var stopped = 0
     init(clock: ManualClock) { self.clock = clock }
     func index(_ d: Duration) -> Int { Int((Double(d.components.seconds) + Double(d.components.attoseconds) / 1e18) * 16_000) }
-    func start() throws { pressIndex = index(clock.now) }
+    func start() throws { pressIndex = index(clock.now); onLevel?(Self.speech * 8) }
     func stop(tail: Duration) async -> [Float] {
         stopped += 1
         let from = pressIndex - (warm ? MicWarmPolicy.samples(MicWarmPolicy.preRoll) : 0)

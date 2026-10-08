@@ -1,3 +1,6 @@
+import Foundation
+import AVFoundation
+import Synchronization
 import CoreAudio
 import Testing
 @testable import WisprLocalCore
@@ -24,6 +27,40 @@ import Testing
             Issue.record("Expected AudioError.startFailed, got \(error)")
         }
         #expect(!recorder.isWarm && !recorder.voiceProcessingActive)
+    }
+
+    @Test(arguments: [false, true], [false, true])
+    func bluetoothStopFollowsReadinessUnlessVP(vp: Bool, keepReady: Bool) async {
+        let recorder = AudioRecorder(voiceProcessingEnabled: vp, inputTransport: { .bluetooth })
+        recorder.keepWarmAfterStop = keepReady
+        recorder.seedCaptureForTesting(samples: [0.2], vpActive: vp)
+        #expect(await recorder.stop(tail: .zero) == [0.2])
+        #expect(recorder.isWarm == (keepReady && !vp))
+        #expect(recorder.voiceProcessingActive == false)
+        if keepReady && !vp {
+            recorder.feedWarmForTesting([0.3])
+            #expect(recorder.hasWarmAudio)
+        }
+        recorder.leaveWarm(); recorder.drainQueueForTesting()
+        #expect(!recorder.isWarm && recorder.warmSamplesForTesting().isEmpty)
+        #expect(IdleInputPolicy.canKeepWarm(vpEnabled: vp, transport: .bluetooth) == !vp)
+    }
+
+    @Test func bluetoothDeviceNotificationDropsVPWarmEngineAndZeroesRing() async {
+        let center = NotificationCenter()
+        let transport = Synchronization.Mutex<InputTransport>(.builtIn)
+        let recorder = AudioRecorder(voiceProcessingEnabled: true,
+                                     inputTransport: { transport.withLock { $0 } }, notificationCenter: center)
+        recorder.keepWarmAfterStop = true
+        recorder.seedCaptureForTesting(samples: [0.2], vpActive: true)
+        _ = await recorder.stop(tail: .zero)
+        recorder.feedWarmForTesting([0.31337])
+        #expect(recorder.isWarm && recorder.voiceProcessingActive && recorder.hasWarmAudio)
+        transport.withLock { $0 = .bluetooth }
+        center.post(name: .AVAudioEngineConfigurationChange, object: nil)
+        recorder.drainQueueForTesting()
+        #expect(!recorder.isWarm && !recorder.voiceProcessingActive)
+        #expect(recorder.warmSamplesForTesting().isEmpty)
     }
 
     @Test func coreAudioTransportsMapWithoutOpeningInput() {

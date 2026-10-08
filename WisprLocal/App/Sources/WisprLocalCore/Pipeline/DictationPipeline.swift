@@ -1,9 +1,10 @@
 import Foundation
 import Observation
+import Synchronization
 
 /// HUD listening cue while recording. A COLD engine start mutes the first ~0.13–0.6 s, so the
 /// pill shows a dim "starting" dot until real audio arrives, teaching users to wait a beat. A
-/// warm start (engine already running, pre-roll prepended) is `.live` immediately.
+/// warm start also waits for a real buffer before switching to live bars.
 public enum RecordingCue: Sendable, Equatable {
     case starting, live
 
@@ -59,6 +60,7 @@ public enum PipelineNotice {
     /// P1.1 follow-up: a re-press inside the previous dictation's 200 ms capture tail is dropped.
     public static func modelUnavailable(_ m: String) -> String { "Speech model unavailable: \(m)" }
     public static func transcriptionFailed(_ m: String) -> String { "Transcription failed twice: \(m)" }
+    public static let holdUntilBars = "Hold until the bars appear"
     public static let quickRepressDropped = "Too quick — previous dictation still finishing. Press again."
     /// CC-7: countdown shown from `recordingLimitWarning` before the recording cap.
     public static let recordingLimitPrefix = "Recording stops in "
@@ -101,6 +103,7 @@ public final class DictationPipeline {
     /// Latest mic level 0...1 for the HUD waveform.
     public private(set) var level: Float = 0
     public private(set) var modelReady = false
+    private var showedHoldUntilBars = false
     /// Meaningful while recording (see `RecordingCue`).
     public private(set) var recordingCue: RecordingCue = .live
 
@@ -157,6 +160,9 @@ public final class DictationPipeline {
     /// mode is switched mid-recording (never mix models within one dictation).
     @ObservationIgnored private var recordingTranscriber: Transcriber?
     @ObservationIgnored private var recordingCapture = CaptureInfo()
+    @ObservationIgnored private var pendingStartCancellation: HistoryEntry?
+    @ObservationIgnored private var startPending = false
+    @ObservationIgnored private var keyDownAt: Duration?
     /// Mode switches run one after another; a superseded switch skips its prepare.
     @ObservationIgnored private var switchChain: Task<Void, Never>?
     @ObservationIgnored private var switchGeneration = 0
@@ -277,6 +283,10 @@ public final class DictationPipeline {
         self.inserterFor = inserterFor; self.history = history; self.frontmostApp = frontmostApp
         audio.onLevel = { [weak self] l in
             guard let self else { return }
+            guard self.status.isRecording else { return }
+            if l > 0, self.recordingCapture.keyDownToCaptureMs == nil, let down = self.keyDownAt {
+                self.recordingCapture.keyDownToCaptureMs = durationMs(self.pipelineClock.now - down)
+            }
             self.level = l
             if l >= RecordingCue.liveLevel, self.recordingCue == .starting { self.recordingCue = .live }
         }
@@ -359,6 +369,7 @@ public final class DictationPipeline {
     public func handle(_ action: HotkeyStateMachine.Action) {
         switch action {
         case .startRecording:
+            let keyDown = pipelineClock.now
             guard !status.isRecording else { return }
             // Wispr Flow priority (STRUCTURAL): a live check at key-down. While holding off, the
             // mic never opens and nothing is transcribed (the insert-time gate is the backstop).
@@ -392,23 +403,55 @@ public final class DictationPipeline {
                 let probe = focusProbe
                 recordingFocus = Task { @MainActor in await probe.snapshot(pid: t.pid, precedingChars: 0) }
             } else { recordingFocus = nil }
-            do {
-                try audio.start()
-                recordingCue = audio.lastStartWasWarm ? .live : .starting
-                recordingCapture = CaptureInfo(warmStart: audio.lastStartWasWarm, micMode: micModeProvider())
-                if let provider = contextProvider, let t = recordingTarget {
-                    recordingContext = Task { @MainActor in await provider.snapshot(for: t) }  // after the mic is on
-                } else { recordingContext = nil }
-                status = .recording(handsFree: false)
-                recordingStartedAt = pipelineClock.now
-                armSoundExclusion()
-                armRecordingLimit(handsFree: false)
-                cleaner.prepareForDictation()  // fresh LLM session, prewarmed while the user speaks
-                if !userFormattingEnabled { autoFormatter?.prepareForDictation() }  // used only on list cues
-            } catch {
-                status = .error(error.localizedDescription)
-                onGestureReset?()
+            keyDownAt = keyDown
+            recordingCue = audio.hasWarmAudio ? .live : .starting
+            level = 0
+            recordingCapture = CaptureInfo(micMode: micModeProvider())
+            let timing = recordingCapture.captureTiming, clock = pipelineClock, down = keyDown
+            audio.onNonZeroCapture = { timing.mark(durationMs(clock.now - down)) }
+            status = .recording(handsFree: false)
+            recordingCapture.keyDownToHUDMs = durationMs(pipelineClock.now - keyDown)
+            recordingStartedAt = pipelineClock.now
+            startPending = true
+            let startingAudio = audio
+            startingAudio.start { [weak self] result in
+                guard let self else { startingAudio.cancel(); return }
+                self.startPending = false
+                guard self.status.isRecording else {
+                    // A release/Esc during startup must close even a non-cooperative start.
+                    let audio = self.audio
+                    Task { @MainActor [weak self] in
+                        _ = await audio.stop(tail: .zero)
+                        self?.finishingCapture = false
+                        if let entry = self?.pendingStartCancellation {
+                            self?.pendingStartCancellation = nil
+                            self?.onEntry?(entry)
+                        }
+                    }
+                    return
+                }
+                switch result {
+                case .success:
+                    self.recordingCapture.warmStart = self.audio.lastStartWasWarm
+                    if self.audio.lastStartWasWarm { self.recordingCue = .live }
+                    if let provider = self.contextProvider, let t = self.recordingTarget {
+                        self.recordingContext = Task { @MainActor in await provider.snapshot(for: t) }
+                    }
+                    self.armSoundExclusion()
+                    self.armRecordingLimit(handsFree: self.status == .recording(handsFree: true))
+                    self.cleaner.prepareForDictation()
+                    if !self.userFormattingEnabled { self.autoFormatter?.prepareForDictation() }
+                case .failure(let error):
+                    self.disarmRecordingLimit()
+                    self.recordingFocus = nil
+                    self.recordingContext = nil
+                    self.recordingTarget = nil
+                    self.recordingTranscriber = nil
+                    self.status = .error(error.localizedDescription)
+                    self.onGestureReset?()
+                }
             }
+
         case .enterHandsFree:
             if status.isRecording {
                 status = .recording(handsFree: true)
@@ -417,7 +460,7 @@ public final class DictationPipeline {
         case .cancelRecording:
             guard status.isRecording else { return }
             disarmRecordingLimit()
-            audio.cancel()  // speculative audio discarded; nothing is transcribed
+            if startPending { finishingCapture = true } else { audio.cancel() }  // speculative audio discarded; nothing is transcribed
             recordingContext = nil
             recordingFocus = nil
             recordingTarget = nil
@@ -446,9 +489,37 @@ public final class DictationPipeline {
         return true
     }
 
+    /// Maximum hold discarded as an accidental cold-start release.
+    static let coldReleaseDiscardWindow: TimeInterval = 1.0
+
     /// Stop and process. `autoSendAllowed` = a user release (not the recording cap).
     private func commit(autoSendAllowed: Bool, captureInterrupted: Bool = false) {
         guard status.isRecording else { return }
+        if !captureInterrupted && recordingCue == .starting && recordingCapture.keyDownToCaptureMs == nil {
+            if (activeRecordingSeconds ?? 0) > Self.coldReleaseDiscardWindow {
+                let target = recordingTarget, engine = recordingTranscriber ?? transcriber
+                var capture = recordingCapture
+                capture.noAudio = true
+                capture.voiceProcessing = audio.captureVoiceProcessingActive
+                let releasedAt = ContinuousClock.now
+                handle(.cancelRecording)
+                enqueue(target: target, transcriber: engine, capture: capture, releasedAt: releasedAt) {
+                    ([], ContinuousClock.now)
+                }
+                return
+            }
+            // A cold release before capture is the existing quick-tap discard: no sound/history.
+            handle(.cancelRecording)
+            if !showedHoldUntilBars {
+                showedHoldUntilBars = true
+                onNotice?(PipelineNotice.holdUntilBars)
+            }
+            return
+        }
+        if startPending {
+            _ = cancelDictation()
+            return
+        }
         let autoSend = autoSendAllowed && autoSendRequested()
         lastCommittedSeconds = activeRecordingSeconds ?? 0
         let exclusion = soundExclusion
@@ -512,7 +583,7 @@ public final class DictationPipeline {
             let duration = activeRecordingSeconds ?? 0
             let target = recordingTarget
             disarmRecordingLimit()
-            audio.cancel()
+            if startPending { finishingCapture = true } else { audio.cancel() }
             recordingContext?.cancel()
             recordingContext = nil  // context names are dropped with the cancelled dictation
             recordingFocus = nil
@@ -520,13 +591,15 @@ public final class DictationPipeline {
             recordingTranscriber = nil
             soundExclusion = nil
             level = 0
-            let entry = HistoryEntry(engine: transcriber.engineName, cleaner: cleaner.name, audioDuration: duration,
+            var entry = HistoryEntry(engine: transcriber.engineName, cleaner: cleaner.name, audioDuration: duration,
                                      frontmostApp: target?.bundleID, outcome: .cancelled)
+            entry.latencies.keyDownToHUDMs = recordingCapture.keyDownToHUDMs
+            entry.latencies.keyDownToCaptureMs = recordingCapture.keyDownToCaptureMs
             history.append(entry)
             lastEntry = entry
             settleStatus()
             playStopSound()
-            onEntry?(entry)
+            if startPending { pendingStartCancellation = entry } else { onEntry?(entry) }
             onNotice?(PipelineNotice.cancelled)
             Log.info("dictation cancelled while recording")
             return true
@@ -650,7 +723,9 @@ public final class DictationPipeline {
                                            transcriber: transcriber, voiceProcessing: capture.voiceProcessing,
                                            warmStart: capture.warmStart, micMode: capture.micMode,
                                            autoSend: autoSend, job: job, nameContext: nameContext,
-                                           startFocus: capture.focus, captureInterrupted: capture.interrupted)
+                                           startFocus: capture.focus, captureInterrupted: capture.interrupted,
+                                           keyDownToHUDMs: capture.keyDownToHUDMs, keyDownToCaptureMs: capture.keyDownToCaptureMs,
+                                           noAudio: capture.noAudio)
             self.pendingJobs -= 1
             self.lastEntry = entry
             self.onEntry?(entry)
@@ -684,7 +759,9 @@ public final class DictationPipeline {
                         micMode: String? = nil, autoSend: Bool = false, job: Int? = nil,
                         nameContext: ContextSnapshot? = nil,
                         startFocus: Task<FocusSnapshot?, Never>? = nil,
-                        captureInterrupted: Bool = false) async -> HistoryEntry {
+                        captureInterrupted: Bool = false,
+                        keyDownToHUDMs: Double? = nil, keyDownToCaptureMs: Double? = nil,
+                        noAudio: Bool = false) async -> HistoryEntry {
         let sr = AudioConstants.sampleRate
         let transcriber = engine ?? self.transcriber
         var entry = HistoryEntry(engine: transcriber.engineName, cleaner: cleaner.name,
@@ -695,6 +772,8 @@ public final class DictationPipeline {
         entry.micMode = micMode
         if captureInterrupted { entry.note = PipelineNotice.captureInterrupted }
         var timings = StageTimings()
+        timings.keyDownToHUDMs = keyDownToHUDMs
+        timings.keyDownToCaptureMs = keyDownToCaptureMs
         var keptSpeech: [Float]?
         // Content-free capture diagnostics (input level, zero-gating detector).
         let level = CaptureLevel.measure(samples, sampleRate: sr)
@@ -762,6 +841,10 @@ public final class DictationPipeline {
             timings.handoffMs = ms(processStart - captureEndedAt)
         }
         func finish() { timings.totalMs = ms(clock.now - releasedAt) }
+        if noAudio {
+            reportNoText(.micNoAudio, entry: &entry, level: level, gating: gating, notice: notice)
+            finish(); return entry
+        }
         if captureInterrupted, samples.count < Int(sr * 0.2) {
             // Too short to transcribe: discard, using the existing outcome-only cancellation.
             entry.outcome = .cancelled
@@ -1238,6 +1321,13 @@ public final class DictationPipeline {
 
 /// What the pipeline records about a capture at recording start (content-free).
 struct CaptureInfo {
+    var keyDownToHUDMs: Double?
+    var captureTiming = CaptureStartTiming()
+    var keyDownToCaptureMs: Double? {
+        get { captureTiming.value }
+        set { if let newValue { captureTiming.mark(newValue) } }
+    }
+    var noAudio = false
     var interrupted = false
     var voiceProcessing: Bool?
     var warmStart: Bool?
@@ -1246,4 +1336,11 @@ struct CaptureInfo {
     var nameContext: Task<ContextSnapshot?, Never>?
     /// The focused element at recording start (auto-send's same-field check, R3).
     var focus: Task<FocusSnapshot?, Never>?
+}
+
+/// First-buffer timestamp is saved on the tap thread, independent of UI scheduling.
+final class CaptureStartTiming: Sendable {
+    private let first = Mutex<Double?>(nil)
+    var value: Double? { first.withLock { $0 } }
+    func mark(_ ms: Double) { first.withLock { if $0 == nil { $0 = ms } } }
 }

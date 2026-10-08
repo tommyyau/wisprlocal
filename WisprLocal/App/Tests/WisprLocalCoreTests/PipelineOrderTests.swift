@@ -5,7 +5,7 @@ import Foundation
 /// Integration of the three feature tracks in ONE pipeline (`DictationPipeline` header comment,
 /// DESIGN.md › "Dictation pipeline order"): the post-processing order, Esc reaching every new
 /// stage, and backtrack Undo vs the learning watcher vs auto-send.
-@MainActor @Suite(.serialized) struct PipelineOrderTests {
+@MainActor @Suite(.serialized, .timeLimit(.minutes(1))) struct PipelineOrderTests {
     final class FixedProvider: ContextProviding {
         let snap: ContextSnapshot
         init(_ s: ContextSnapshot) { snap = s }
@@ -74,7 +74,7 @@ import Foundation
         p.onInserted = { _ in watched += 1 }
         p.handle(.startRecording)
         p.handle(.commitRecording)
-        while !fm.entered { await Task.yield() }
+        await waitForTest("cleaner entered") { fm.entered }
         #expect(p.cancelDictation())
         fm.release()
         await p.drain()

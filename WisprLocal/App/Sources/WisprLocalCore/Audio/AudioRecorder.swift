@@ -7,11 +7,15 @@ import Synchronization
 public protocol AudioCapturing: AnyObject {
     /// Called on the main actor with a 0...1 level roughly every audio buffer (~20-100 ms).
     var onLevel: ((Float) -> Void)? { get set }
+    var hasWarmAudio: Bool { get }
+    /// Tap-thread notification, before a main-actor hop; no audio content is retained.
+    var onNonZeroCapture: (@Sendable () -> Void)? { get set }
     /// Called on the main actor when the max duration is reached (recording is still running;
     /// the owner should stop/commit it).
     var onMaxDurationReached: (() -> Void)? { get set }
     /// Capture could not restart after a device change; commit the samples collected so far.
     var onCaptureInterrupted: (@MainActor (String) -> Void)? { get set }
+    func start(completion: @escaping @MainActor @Sendable (Result<Void, Error>) -> Void)
     func start() throws
     /// Keep capturing for `tail` (so the last word isn't clipped), then stop the engine (mic
     /// indicator off) and return the captured samples.
@@ -42,6 +46,10 @@ public protocol AudioCapturing: AnyObject {
 }
 
 extension AudioCapturing {
+    public var onNonZeroCapture: (@Sendable () -> Void)? { get { nil } set {} }
+    public func start(completion: @escaping @MainActor @Sendable (Result<Void, Error>) -> Void) {
+        do { try start(); completion(.success(())) } catch { completion(.failure(error)) }
+    }
     public var onCaptureInterrupted: (@MainActor (String) -> Void)? {
         get { nil }
         set {}
@@ -50,6 +58,7 @@ extension AudioCapturing {
     public func enterWarm() throws {}
     public func leaveWarm() {}
     public var isWarm: Bool { false }
+    public var hasWarmAudio: Bool { isWarm }
     public var lastStartWasWarm: Bool { false }
     public var keepWarmAfterStop: Bool { get { false } set {} }
     public func stop(adaptiveTail: CaptureTailPolicy) async -> [Float] { await stop(tail: adaptiveTail.maximum) }
@@ -93,7 +102,7 @@ final class SampleSink: Sendable {
     /// prepends exactly `MicWarmPolicy.preRoll`; cold prepends nothing. Returns whether it was warm.
     @discardableResult
     func beginRecording(engineRunning: Bool) -> Bool {
-        let warm = engineRunning && ringEnabled
+        let warm = engineRunning && hasWarmAudio
         begin(preRoll: warm ? MicWarmPolicy.samples(MicWarmPolicy.preRoll) : 0)
         return warm
     }
@@ -102,6 +111,9 @@ final class SampleSink: Sendable {
     /// Zero every ring sample, then free it.
     func disableRing() { state.withLock { $0.ring?.zeroAndFree(); $0.ring = nil } }
     var ringEnabled: Bool { state.withLock { $0.ring != nil } }
+    var hasWarmAudio: Bool { state.withLock { s in
+        (s.ring?.last(s.ring?.count ?? 0) ?? []).contains { $0 != 0 }
+    } }
     /// Tests only: ring contents (never used by the app).
     func ringSnapshotForTesting() -> [Float] { state.withLock { $0.ring?.last($0.ring?.count ?? 0) ?? [] } }
 
@@ -188,11 +200,17 @@ final class CapturePath: @unchecked Sendable {
 ///
 /// All engine work runs on a private serial queue: device-change rebuilds happen there eagerly
 /// while idle (off the key path), and mid-recording they rebuild + restart into the SAME sample
-/// sink (a short gap is accepted). `start()` only waits on the queue if a rebuild is in flight.
+/// sink (a short gap is accepted). The pipeline starts through the asynchronous completion API.
 nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendable {
     @MainActor public var onLevel: ((Float) -> Void)?
     @MainActor public var onCaptureInterrupted: (@MainActor (String) -> Void)?
     @MainActor public var onMaxDurationReached: (() -> Void)?
+
+    private let nonZeroCallback = Mutex<(@Sendable () -> Void)?>(nil)
+    public var onNonZeroCapture: (@Sendable () -> Void)? {
+        get { nonZeroCallback.withLock { $0 } }
+        set { nonZeroCallback.withLock { $0 = newValue } }
+    }
 
     private let q = DispatchQueue(label: "wisprlocal.audio", qos: .userInteractive)
     // --- state below is only touched on `q` ---
@@ -200,13 +218,15 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
     private var needsRebuild = true
     private var tapInstalled = false
     private var vpEnabled: Bool
-    private var vpActive = false
+    private struct Snapshot { var vp = false; var running = false; var warm = false; var keep = false }
+    private let snapshot = Mutex(Snapshot())
+    private var vpActive = false { didSet { snapshot.withLock { $0.vp = vpActive } } }
     private let inputTransport: @Sendable () -> InputTransport
     private var loggedUnknownTransport = false
     /// Engine running (recording and/or warm).
-    private var running = false
+    private var running = false { didSet { snapshot.withLock { $0.running = running } } }
     private var recording = false
-    private var warmStart = false
+    private var warmStart = false { didSet { snapshot.withLock { $0.warm = warmStart } } }
     private var keepWarm = false
     // ---
     private let path = CapturePath(sink: SampleSink(maxSamples: AudioConstants.maxSamples))
@@ -214,12 +234,15 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
     /// Live 9-band voice spectrum for the HUD (written by the tap, read at display rate).
     public var spectrum: SpectrumBands { path.spectrum }
     private var configObserver: NSObjectProtocol?
+    private let notificationCenter: NotificationCenter
 
     public init(voiceProcessingEnabled: Bool = true,
-                inputTransport: @escaping @Sendable () -> InputTransport = InputTransportProbe.defaultInputTransport) {
+                inputTransport: @escaping @Sendable () -> InputTransport = InputTransportProbe.defaultInputTransport,
+                notificationCenter: NotificationCenter = .default) {
         vpEnabled = voiceProcessingEnabled
         self.inputTransport = inputTransport
-        configObserver = NotificationCenter.default.addObserver(
+        self.notificationCenter = notificationCenter
+        configObserver = notificationCenter.addObserver(
             forName: .AVAudioEngineConfigurationChange, object: nil, queue: nil
         ) { [weak self] _ in
             guard let self else { return }
@@ -227,25 +250,30 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
         }
     }
 
-    deinit { if let configObserver { NotificationCenter.default.removeObserver(configObserver) } }
+    deinit { if let configObserver { notificationCenter.removeObserver(configObserver) } }
 
     /// Whether voice processing actually got enabled (false if the device/OS refused).
-    public var voiceProcessingActive: Bool { q.sync { vpActive } }
+    public var voiceProcessingActive: Bool { snapshot.withLock { $0.vp } }
     public var captureVoiceProcessingActive: Bool? { voiceProcessingActive }
 
-    public var isWarm: Bool { q.sync { running && sink.ringEnabled } }
-    public var lastStartWasWarm: Bool { q.sync { warmStart } }
+    public var isWarm: Bool { snapshot.withLock { $0.running } && sink.ringEnabled }
+    public var hasWarmAudio: Bool { isWarm && sink.hasWarmAudio }
+    public var lastStartWasWarm: Bool { snapshot.withLock { $0.warm } }
     public var keepWarmAfterStop: Bool {
-        get { q.sync { keepWarm } }
-        set { q.sync { keepWarm = newValue } }
+        get { snapshot.withLock { $0.keep } }
+        set {
+            snapshot.withLock { $0.keep = newValue }
+            q.async { [self] in keepWarm = newValue }
+        }
     }
 
     public func enterWarm() throws {
         try q.sync { [self] in
-            guard !vpEnabled else {
-                throw AudioError.startFailed("warm mode is off while Noise reduction is on")
+            // Bluetooth readiness is allowed only for raw capture.
+            guard IdleInputPolicy.canKeepWarm(vpEnabled: vpEnabled, transport: currentInputTransport()) else {
+                throw AudioError.startFailed("Bluetooth inputs stay closed while idle")
             }
-            try buildOnQueue(voiceProcessing: false)
+            try buildOnQueue(voiceProcessing: vpEnabled)
             sink.enableRing()
             if !running {
                 do { try startEngine() } catch {
@@ -257,8 +285,8 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
     }
 
     public func leaveWarm() {
-        q.sync { [self] in
-            sink.disableRing()
+        sink.disableRing()  // zero/free immediately, even while device work is queued
+        q.async { [self] in
             if !recording && (vpEnabled || vpActive) {
                 try? idleReset()
             } else if running && !recording {
@@ -274,14 +302,16 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
             guard on != vpEnabled else { return }
             vpEnabled = on; needsRebuild = true
             if !running { try? idleReset() }
-            else if !recording && on {
-                try? idleReset()
-            } else if !recording {
+            else if !recording {
+                guard IdleInputPolicy.canKeepWarm(vpEnabled: vpEnabled, transport: currentInputTransport()) else {
+                    try? idleReset()
+                    return
+                }
                 // Warm: rebuild in the new mode and keep warm (the ring restarts empty).
                 let wasWarm = sink.ringEnabled
                 sink.disableRing()
                 do {
-                    try buildOnQueue(voiceProcessing: false)
+                    try buildOnQueue(voiceProcessing: on)
                     if wasWarm { sink.enableRing(); try startEngine() }
                 } catch { running = false; Log.error("warm mic rebuild failed: \(error.localizedDescription)") }
             }
@@ -298,15 +328,15 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
     private func handleConfigurationChange() {
         needsRebuild = true
         if running {
-            if !recording && IdleInputPolicy.keepInputClosedWhileIdle(vpEnabled: vpEnabled, transport: currentInputTransport()) {
+            if !recording && !IdleInputPolicy.canKeepWarm(vpEnabled: vpEnabled, transport: currentInputTransport()) {
                 // The new idle input must stay closed: end the warm window.
                 try? idleReset()
                 return
             }
             // Device changed mid-utterance: rebuild and keep appending to the same sink.
-            // (Also while warm between dictations, which only happens with Noise reduction off.)
+            // Also while warm between dictations, with the selected noise reduction mode.
             if recording { Log.info("audio device changed mid-recording; engine restarted") }
-            do { try buildOnQueue(voiceProcessing: recording && vpEnabled); try startEngine() }
+            do { try buildOnQueue(voiceProcessing: vpEnabled); try startEngine() }
             catch {
                 if IdleInputPolicy.keepInputClosedWhileIdle(vpEnabled: vpEnabled, transport: currentInputTransport()) || vpActive { try? idleReset() }
                 Log.error("audio restart after device change failed: \(error.localizedDescription)")
@@ -374,6 +404,7 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
         let format = input.outputFormat(forBus: 0)
         guard format.sampleRate > 0, format.channelCount > 0 else { throw AudioError.noInputDevice }
         let report: @Sendable (Float, Bool) -> Void = { [weak self] level, hitMax in
+            if level > 0 { self?.onNonZeroCapture?() }
             Task { @MainActor in
                 self?.onLevel?(level)
                 if hitMax { self?.onMaxDurationReached?() }
@@ -404,25 +435,35 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
         }
     }
 
-    public func start() throws {
-        try q.sync { [self] in
-            // A pending rebuild stops a warm engine: that start is cold.
-            do { try buildOnQueue(voiceProcessing: vpEnabled) } catch {
-                if IdleInputPolicy.keepInputClosedWhileIdle(vpEnabled: vpEnabled, transport: currentInputTransport()) || vpActive { try? idleReset() }
-                throw error
-            }
-            path.analyzer.resetDisplayGain()
-            warmStart = sink.beginRecording(engineRunning: running)
-            if !running {
-                do { try startEngine() } catch {
-                    _ = sink.end()
-                    needsRebuild = true
-                    if IdleInputPolicy.keepInputClosedWhileIdle(vpEnabled: vpEnabled, transport: currentInputTransport()) || vpActive { try? idleReset() }
-                    throw AudioError.startFailed(error.localizedDescription)
-                }
-            }
-            recording = true
+    /// Never wait for device opening or VPIO setup on the main actor.
+    public func start(completion: @escaping @MainActor @Sendable (Result<Void, Error>) -> Void) {
+        q.async { [self] in
+            let result = Result { try startOnQueue() }
+            Task { @MainActor in completion(result) }
         }
+    }
+
+    public func start() throws {
+        try q.sync { try startOnQueue() }
+    }
+
+    private func startOnQueue() throws {
+        // A pending rebuild stops a warm engine: that start is cold.
+        do { try buildOnQueue(voiceProcessing: vpEnabled) } catch {
+            if IdleInputPolicy.keepInputClosedWhileIdle(vpEnabled: vpEnabled, transport: currentInputTransport()) || vpActive { try? idleReset() }
+            throw error
+        }
+        path.analyzer.resetDisplayGain()
+        warmStart = sink.beginRecording(engineRunning: running)
+        if !running {
+            do { try startEngine() } catch {
+                _ = sink.end()
+                needsRebuild = true
+                if IdleInputPolicy.keepInputClosedWhileIdle(vpEnabled: vpEnabled, transport: currentInputTransport()) || vpActive { try? idleReset() }
+                throw AudioError.startFailed(error.localizedDescription)
+            }
+        }
+        recording = true
     }
 
     /// The ONLY place the engine starts (`CaptureContinuityTests.engineStartsOnlyThroughStartEngine`):
@@ -437,9 +478,24 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
     /// Exercise the prepared-engine guard without building or opening an audio input.
     func startPreparedEngineForTesting() throws { try q.sync { try startEngine() } }
 
+    /// Seed queue-owned capture state without opening a hardware input.
+    func seedCaptureForTesting(samples: [Float], vpActive: Bool) {
+        q.sync {
+            self.vpActive = vpActive
+            running = true; recording = true; needsRebuild = false
+            sink.begin()
+            samples.withUnsafeBufferPointer { _ = sink.append($0) }
+        }
+    }
+    func drainQueueForTesting() { q.sync {} }
+    func warmSamplesForTesting() -> [Float] { sink.ringSnapshotForTesting() }
+    func feedWarmForTesting(_ samples: [Float]) {
+        samples.withUnsafeBufferPointer { _ = sink.append($0) }
+    }
+
     public func stop(tail: Duration) async -> [Float] {
         if tail > .zero { try? await Task.sleep(for: tail) }
-        return stopNow()
+        return await stopAsync()
     }
 
     public func stop(adaptiveTail p: CaptureTailPolicy) async -> [Float] {
@@ -455,31 +511,35 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
             if p.shouldStop(elapsed: elapsed, endsInSilence: silent) { break }
             try? await Task.sleep(for: min(.milliseconds(10), p.maximum - elapsed))
         }
-        return stopNow()
+        return await stopAsync()
     }
 
-    public func cancel() { _ = stopNow() }
+    public func cancel() { q.async { [self] in _ = stopOnQueue() } }
 
-    private func stopNow() -> [Float] {
-        let samples = q.sync { [self] () -> [Float] in
-            recording = false
-            spectrum.clear()
-            let out = sink.end()
-            if vpEnabled || vpActive {
-                try? idleReset()  // Release VPIO synchronously so ducking lifts at stop.
-            } else if keepWarm && running {
-                sink.enableRing()  // stay warm; WarmMicController owns the 60 s window
-            } else {
-                // stop() (not pause) releases the input so the mic indicator turns off.
-                engine.stop()
-                running = false
-                sink.disableRing()
-            }
-            return out
+    private func stopAsync() async -> [Float] {
+        await withCheckedContinuation { k in
+            q.async { [self] in k.resume(returning: stopOnQueue()) }
+        }
+    }
+
+    private func stopOnQueue() -> [Float] {
+        recording = false
+        spectrum.clear()
+        let out = sink.end()
+        if keepWarm && running && IdleInputPolicy.canKeepWarm(vpEnabled: vpEnabled, transport: currentInputTransport()) {
+            // Raw and VP use the same memory-only pre-roll and controller-owned window.
+            sink.enableRing()
+        } else if vpEnabled || vpActive || !IdleInputPolicy.canKeepWarm(vpEnabled: vpEnabled, transport: currentInputTransport()) {
+            try? idleReset()  // No readiness window, or Bluetooth with VP: release the input fully.
+        } else {
+            // stop() (not pause) releases the input so the mic indicator turns off.
+            engine.stop()
+            running = false
+            sink.disableRing()
         }
         // Re-prepare off the key path so the next start stays fast.
         q.async { [self] in if !running { try? idleReset(reprepareExisting: true) } }
-        return samples
+        return out
     }
 }
 

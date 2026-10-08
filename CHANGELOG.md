@@ -2,6 +2,13 @@
 
 All notable changes to WisprLocal are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+- Show the microphone's starting indicator immediately on key-down and start the audio engine off the main actor. Release within 1 s of key-down before the first real audio of a cold start discards silently like a quick tap; longer holds show “Didn’t catch that” and save an outcome-only history entry, with a once-per-session “Hold until the bars appear” hint; Esc remains Cancel; readiness reads and stop cleanup no longer wait on engine work.
+- Record `keyDownToHUDMs` and `keyDownToCaptureMs` in history timings and troubleshooting metadata. Add controlled pending-start publication/return tests and bounded waits and an opt-in built-in microphone cold/warm VP benchmark (`WISPRLOCAL_START_BENCH=1`). Noise reduction remains off by default.
+- Show live bars immediately for an already-warm microphone with non-zero pre-roll audio; reserve the dim starting cue for cold starts.
+- Keep Background noise reduction warm under the existing readiness settings (Ready for 60 s after dictating or Always on), with the orange mic dot during that time. Preserve privacy drops, memory-only pre-roll zeroing and raw Bluetooth readiness and the Bluetooth exclusion with noise reduction on. Update Settings help and FAQ, and benchmark the production VP readiness window.
+
 ## 1.0.0 — source code only
 
 - History, Home and search stay fast as history grows: newest entries load first, older days page in as you scroll, and new dictations update the screens without re-reading the file.
