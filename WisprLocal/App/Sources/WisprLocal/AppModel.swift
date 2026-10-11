@@ -20,8 +20,8 @@ final class AppModel {
         var wisprFlowRunning = false
         var cleanup: CleanupModelAvailability = .available
         var model: ModelState = .ready
-        var devices: [InputDevice] = [InputDevice(id: 1, name: "MacBook Pro Microphone", isBuiltIn: true),
-                                      InputDevice(id: 2, name: "AirPods Pro", isBuiltIn: false)]
+        var devices: [InputDevice] = [InputDevice(id: 1, name: "MacBook Pro Microphone", isBuiltIn: true, uid: "sample-built-in"),
+                                      InputDevice(id: 2, name: "AirPods Pro", isBuiltIn: false, uid: "sample-bluetooth")]
         var defaultDevice: AudioDeviceID? = 1
         var now = Date()
         var debugRecordingCount = 0
@@ -337,12 +337,31 @@ final class AppModel {
     }
 
     func selectDevice(_ id: AudioDeviceID) {
-        guard live != nil else { defaultDevice = id; return }
-        if InputDevices.setDefaultInput(id) { defaultDevice = id }
+        guard let device = devices.first(where: { $0.id == id }) else { return }
+        if let live { live.setPreferredInputUID(device.uid) }
+        else { settings.preferredInputUID = device.uid }
+        refreshDevices()
+    }
+
+    func followSystemInput() {
+        if let live { live.setPreferredInputUID(nil) }
+        else { settings.preferredInputUID = nil }
+        refreshDevices()
+    }
+
+    var selectedDevice: InputDevice? {
+        if let uid = settings.preferredInputUID { return devices.first { $0.uid == uid } }
+        return devices.first { $0.id == defaultDevice }
+    }
+
+    var microphoneLabel: String {
+        if settings.preferredInputUID != nil { return selectedDevice?.name ?? "Selected microphone unavailable" }
+        return selectedDevice.map { "System default · \($0.name)" } ?? "System default"
     }
 
     func refreshSystemState() {
         tick &+= 1
+        refreshDevices()
         live?.refreshStatus()
         live?.conflicts.refresh()
         let day = Calendar.autoupdatingCurrent.startOfDay(for: now)

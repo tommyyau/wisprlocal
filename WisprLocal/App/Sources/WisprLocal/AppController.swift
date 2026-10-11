@@ -71,7 +71,8 @@ final class AppController {
         cleanupMaxTimeout = LiveValue(settings.aiCleanupMaxTimeout)
         dictionary = DictionaryStore(url: settings.dictionaryURL)
         smart = SmartDictionaryController(dictionary: dictionary)
-        recorder = AudioRecorder(voiceProcessingEnabled: settings.voiceProcessingEnabled)
+        recorder = AudioRecorder(voiceProcessingEnabled: settings.voiceProcessingEnabled,
+                                 preferredInputUID: settings.preferredInputUID)
         history = HistoryStore(directory: settings.historyDirectory)
         library = HistoryLibrary(history: history, recordings: recordings)
         let flag = conflicts.flag
@@ -99,7 +100,7 @@ final class AppController {
             debugRecordings: recordings)
         self.pipeline = pipeline
         smart.install(on: pipeline)
-        pipeline.inputIsBuiltInMic = { InputDevices.defaultInputIsBuiltIn() }
+        pipeline.inputIsBuiltInMic = { [settings] in InputDevices.selectedInputIsBuiltIn(uid: settings.preferredInputUID) }
         pipeline.micModeProvider = { MicMode.current }
         let styles = self.styles
         pipeline.styleFor = { styles.configuration.style(forBundleID: $0) }
@@ -408,6 +409,12 @@ final class AppController {
     }
 
     // MARK: settings actions
+
+    func setPreferredInputUID(_ uid: String?) {
+        settings.preferredInputUID = uid
+        recorder.setPreferredInputUID(uid)
+        warmMic.settingsChanged()
+    }
 
     func setVoiceProcessing(_ on: Bool) {
         settings.voiceProcessingEnabled = on

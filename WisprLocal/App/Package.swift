@@ -16,8 +16,11 @@ let package = Package(
     targets: [
         .target(
             name: "WisprLocalCore",
-            dependencies: ["WisprLocalStatsC", .product(name: "FluidAudio", package: "FluidAudio")]
+            dependencies: ["WisprLocalStatsC", "WisprLocalAudioSafety", .product(name: "FluidAudio", package: "FluidAudio")]
         ),
+        // AVAudioEngine raises Objective-C exceptions during some hardware transitions.
+        // Keep the narrow exception boundary outside Swift and discard failed graphs.
+        .target(name: "WisprLocalAudioSafety"),
         // Insights' word-level cleanup diff, in plain C so it stays fast in unoptimised builds.
         .target(name: "WisprLocalStatsC"),
         .executableTarget(

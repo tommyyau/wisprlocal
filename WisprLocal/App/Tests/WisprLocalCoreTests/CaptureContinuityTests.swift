@@ -177,7 +177,7 @@ import Testing
         let source = raw.replacingOccurrences(of: #"//[^\n]*|/\*[\s\S]*?\*/"#, with: "", options: .regularExpression).filter { !$0.isWhitespace }
         let recorder = try #require(source.range(of: "finalclassAudioRecorder:"))
         let implementation = String(source[recorder.lowerBound...])
-        let configuredBuild = "buildOnQueue(voiceProcessing:vpEnabled)"
+        let configuredBuild = "buildOnQueue(voiceProcessing:vpEnabled"
         for signature in ["funcstartOnQueue()throws", "funcenterWarm()throws", "funchandleConfigurationChange()"] {
             #expect(try block(in: implementation, after: signature).contains(configuredBuild))
         }
@@ -186,7 +186,7 @@ import Testing
         let stop = try block(in: implementation, after: "funcstopOnQueue()")
         let allowed = try block(in: stop, after: "ifkeepWarm&&running&&IdleInputPolicy.canKeepWarm(vpEnabled:vpEnabled,transport:currentInputTransport())")
         #expect(allowed == "sink.enableRing()", "Raw and VP share the readiness ring without rebuilding")
-        let build = try block(in: implementation, after: "funcbuildOnQueue(voiceProcessing:Bool)")
+        let build = try block(in: implementation, after: "funcbuildOnQueue(voiceProcessing:Bool,reuseInput:Bool=false)")
         #expect(try block(in: build, after: "ifvoiceProcessing").contains("setVoiceProcessingEnabled(true)"))
         #expect(!build.contains("idleReset"))
     }
@@ -214,7 +214,8 @@ import Testing
         }
         let query = try block(in: source, after: "funccurrentInputTransport()")
         #expect(query.contains("dispatchPrecondition(condition:.onQueue(q))"))
-        #expect(query.contains("lettransport=inputTransport()"), "Query the injected transport at decision time")
+        #expect(query.contains("inputTransport?()"), "Query the injected transport at decision time")
+        #expect(query.contains("selectedInputID(uid:preferredInputUID)"), "Live policy follows the selected microphone")
         #expect(!query.contains("inputNode"))
         let start = try block(in: source, after: "funcstartOnQueue()throws")
         #expect(start.components(separatedBy: "if" + policy + "||vpActive{try?idleReset()}").count == 3,
@@ -234,7 +235,7 @@ import Testing
         #expect(warm.contains("guardIdleInputPolicy.canKeepWarm(vpEnabled:vpEnabled,transport:currentInputTransport())else{"))
         #expect(warm.contains("trybuildOnQueue(voiceProcessing:vpEnabled)"))
         #expect(!warm.contains("idleReset"))
-        let build = try block(in: source, after: "funcbuildOnQueue(voiceProcessing:Bool)")
+        let build = try block(in: source, after: "funcbuildOnQueue(voiceProcessing:Bool,reuseInput:Bool=false)")
         #expect(!build.contains("idleReset") && !build.contains("keepInputClosedWhileIdle"))
         let engineStart = try block(in: source, after: "funcstartEngine()throws")
         let guardRange = try #require(engineStart.range(of: "guardtapInstalledelse{throwAudioError.startFailed(\"inputgraphisnotprepared\")}"))

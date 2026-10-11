@@ -71,4 +71,31 @@ import Testing
         #expect(InputTransportProbe.classify(kAudioDeviceTransportTypeUnknown) == .unknown)
         #expect(InputTransportProbe.classify(0) == .unknown)
     }
+
+    /// Real AVAudioEngine, without opening a microphone: an idle/quit/cancel callback can
+    /// arrive before a graph exists, including after Bluetooth has released it. Previously
+    /// the deferred prepare() aborted the process with an uncaught Objective-C exception.
+    @Test(arguments: [false, true], ["leaveWarm", "stop", "cancel"])
+    func unpreparedBuiltInEngineSurvivesIdleCleanup(afterBluetoothRelease: Bool, action: String) async throws {
+        let transport = Mutex<InputTransport>(afterBluetoothRelease ? .bluetooth : .builtIn)
+        let recorder = AudioRecorder(voiceProcessingEnabled: false,
+                                     inputTransport: { transport.withLock { $0 } },
+                                     notificationCenter: NotificationCenter())
+        if afterBluetoothRelease {
+            try recorder.prepare()
+            transport.withLock { $0 = .builtIn }
+        }
+        for _ in 0..<2 {
+            switch action {
+            case "leaveWarm": recorder.leaveWarm()
+            case "stop": #expect(await recorder.stop(tail: .zero).isEmpty)
+            default: recorder.cancel()
+            }
+            // stop/cancel can enqueue the deferred prepare behind the first drain.
+            recorder.drainQueueForTesting()
+            recorder.drainQueueForTesting()
+            #expect(!recorder.isWarm && recorder.warmSamplesForTesting().isEmpty)
+            #expect(throws: AudioError.self) { try recorder.startPreparedEngineForTesting() }
+        }
+    }
 }

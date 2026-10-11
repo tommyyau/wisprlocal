@@ -217,7 +217,7 @@ struct MicrophoneSettings: View {
     @State private var testing = false
     var body: some View {
         SettingsGroup(section: .microphone) {
-            SettingRow(title: "Microphone", why: "Same as your Mac's Sound input.", info: .micTest) {
+            SettingRow(title: "Microphone", why: "Choose a mic for WisprLocal, or follow your Mac's input.", info: .micTest) {
                 HStack(spacing: Theme.Space.xs) {
                     MicPicker(model: model)
                     Button("Test…") { testing = true }.controlSize(.small).fixedSize()
@@ -330,13 +330,18 @@ struct PrivacySettings: View {
 struct MicPicker: View {
     let model: AppModel
     var body: some View {
-        let current = model.devices.first { $0.id == model.defaultDevice }
+        let current = model.selectedDevice
         Menu {
+            Button { model.followSystemInput() } label: {
+                if model.settings.preferredInputUID == nil { Label("System default", systemImage: "checkmark") }
+                else { Text("System default") }
+            }
+            Divider()
             ForEach(model.devices) { d in
                 Button {
                     model.selectDevice(d.id)
                 } label: {
-                    if d.id == model.defaultDevice { Label(d.name, systemImage: "checkmark") } else { Text(d.name) }
+                    if d.uid == model.settings.preferredInputUID { Label(d.name, systemImage: "checkmark") } else { Text(d.name) }
                 }
             }
             Divider()
@@ -345,7 +350,7 @@ struct MicPicker: View {
             HStack(spacing: 8) {
                 Image(systemName: current?.isBuiltIn == false ? "headphones" : "laptopcomputer")
                     .font(Theme.Typo.symbol).foregroundStyle(Theme.accent)
-                Text(current?.name ?? "System default").font(Theme.Typo.body).lineLimit(1)
+                Text(model.microphoneLabel).font(Theme.Typo.body).lineLimit(1)
                 Spacer(minLength: 4)
                 Image(systemName: "chevron.up.chevron.down").font(Theme.Typo.chevron).foregroundStyle(.secondary)
             }
@@ -355,7 +360,8 @@ struct MicPicker: View {
             .contentShape(Rectangle())
         }
         .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
-        .accessibilityLabel("Microphone: \(current?.name ?? "System default")")
+        .accessibilityLabel("Microphone: \(model.microphoneLabel)")
+        .help(model.microphoneLabel)
     }
 }
 

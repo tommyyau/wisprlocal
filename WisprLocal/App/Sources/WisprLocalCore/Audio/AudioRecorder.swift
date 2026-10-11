@@ -1,6 +1,8 @@
 @preconcurrency import AVFoundation
 import Foundation
 import Synchronization
+import CoreAudio
+import WisprLocalAudioSafety
 
 /// Records 16 kHz mono Float32 samples into memory.
 @MainActor
@@ -198,8 +200,8 @@ final class CapturePath: @unchecked Sendable {
 
 /// AVAudioEngine recorder with optional Apple voice processing (noise suppression / AGC).
 ///
-/// All engine work runs on a private serial queue: device-change rebuilds happen there eagerly
-/// while idle (off the key path), and mid-recording they rebuild + restart into the SAME sample
+/// All engine work runs on a private serial queue: idle device changes discard the old graph,
+/// and mid-recording they rebuild + restart into the SAME sample
 /// sink (a short gap is accepted). The pipeline starts through the asynchronous completion API.
 nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendable {
     @MainActor public var onLevel: ((Float) -> Void)?
@@ -221,7 +223,9 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
     private struct Snapshot { var vp = false; var running = false; var warm = false; var keep = false }
     private let snapshot = Mutex(Snapshot())
     private var vpActive = false { didSet { snapshot.withLock { $0.vp = vpActive } } }
-    private let inputTransport: @Sendable () -> InputTransport
+    private let inputTransport: (@Sendable () -> InputTransport)?
+    private var preferredInputUID: String?
+    private var configuredInputID: AudioDeviceID?
     private var loggedUnknownTransport = false
     /// Engine running (recording and/or warm).
     private var running = false { didSet { snapshot.withLock { $0.running = running } } }
@@ -237,16 +241,25 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
     private let notificationCenter: NotificationCenter
 
     public init(voiceProcessingEnabled: Bool = true,
-                inputTransport: @escaping @Sendable () -> InputTransport = InputTransportProbe.defaultInputTransport,
+                preferredInputUID: String? = nil,
+                inputTransport: (@Sendable () -> InputTransport)? = nil,
                 notificationCenter: NotificationCenter = .default) {
         vpEnabled = voiceProcessingEnabled
+        self.preferredInputUID = preferredInputUID
         self.inputTransport = inputTransport
         self.notificationCenter = notificationCenter
         configObserver = notificationCenter.addObserver(
             forName: .AVAudioEngineConfigurationChange, object: nil, queue: nil
-        ) { [weak self] _ in
+        ) { [weak self] notification in
             guard let self else { return }
-            self.q.async { [weak self] in self?.handleConfigurationChange() }
+            let sourceID = (notification.object as? AVAudioEngine).map(ObjectIdentifier.init)
+            self.q.async { [weak self] in
+                guard let self, sourceID == nil || sourceID == ObjectIdentifier(self.engine) else { return }
+                // Binding a device queues a notification before our prepared graph starts.
+                // If it is already running by delivery, rebuilding again would create a loop.
+                if sourceID != nil, self.engine.isRunning { return }
+                self.handleConfigurationChange()
+            }
         }
     }
 
@@ -318,6 +331,18 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
         }
     }
 
+    public func setPreferredInputUID(_ uid: String?) {
+        q.async { [self] in
+            guard uid != preferredInputUID else { return }
+            preferredInputUID = uid
+            // Never prepend another microphone's warm audio after a selection change.
+            let wasWarm = sink.ringEnabled
+            sink.disableRing()
+            if wasWarm { sink.enableRing() }
+            handleConfigurationChange()
+        }
+    }
+
     /// Prepare raw audio ahead of time; with VP or Bluetooth, release the idle engine and build cold at `start()`.
     /// Safe to call repeatedly.
     public func prepare() throws { try q.sync { try idleReset() } }
@@ -336,7 +361,7 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
             // Device changed mid-utterance: rebuild and keep appending to the same sink.
             // Also while warm between dictations, with the selected noise reduction mode.
             if recording { Log.info("audio device changed mid-recording; engine restarted") }
-            do { try buildOnQueue(voiceProcessing: vpEnabled); try startEngine() }
+            do { try buildOnQueue(voiceProcessing: vpEnabled, reuseInput: true); try startEngine() }
             catch {
                 if IdleInputPolicy.keepInputClosedWhileIdle(vpEnabled: vpEnabled, transport: currentInputTransport()) || vpActive { try? idleReset() }
                 Log.error("audio restart after device change failed: \(error.localizedDescription)")
@@ -347,14 +372,28 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
                 }
             }
         } else {
-            try? idleReset()
+            // Hardware is still settling. Opening a new input here can race a disconnect and
+            // raise inside installTap. Release the idle graph; rebuild on the next explicit use.
+            discardInputGraph()
         }
+    }
+
+    private func discardInputGraph() {
+        engine.stop()
+        engine = AVAudioEngine()
+        tapInstalled = false
+        configuredInputID = nil
+        vpActive = false
+        running = false
+        needsRebuild = true
+        sink.disableRing()
     }
 
     /// Query at each decision on the audio queue; never cache the default input's transport.
     private func currentInputTransport() -> InputTransport {
         dispatchPrecondition(condition: .onQueue(q))
-        let transport = inputTransport()
+        let transport = inputTransport?() ?? InputTransportProbe.selectedInputID(uid: preferredInputUID)
+            .map { InputTransportProbe.classify(InputTransportProbe.transport($0)) } ?? .unknown
         if transport == .unknown && !loggedUnknownTransport {
             Log.info("input transport: unknown")
             loggedUnknownTransport = true
@@ -375,22 +414,43 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
             running = false
             sink.disableRing()
         } else if reprepareExisting {
-            engine.prepare()
+            // A privacy/idle drop can leave a brand-new engine with no graph. The input may
+            // have changed back to built-in since then. prepare() on that empty engine raises
+            // an NSException (not a Swift Error), so try? cannot protect this path. Leave a
+            // missing or invalidated graph for buildOnQueue at the next explicit preparation.
+            guard tapInstalled, !needsRebuild else { return }
+            var error: NSError?
+            guard WLPrepareAudioEngine(engine, &error) else {
+                discardInputGraph()
+                throw error ?? AudioError.noInputDevice as NSError
+            }
         } else {
             try buildOnQueue(voiceProcessing: false)
         }
     }
 
     /// Always build a usable input graph; idle callers must decide policy in idleReset first.
-    private func buildOnQueue(voiceProcessing: Bool) throws {
+    private func buildOnQueue(voiceProcessing: Bool, reuseInput: Bool = false) throws {
+        guard let selected = InputTransportProbe.selectedInputID(uid: preferredInputUID) else {
+            engine.stop(); running = false; needsRebuild = true; sink.disableRing()
+            throw preferredInputUID == nil ? AudioError.noInputDevice : AudioError.selectedInputUnavailable
+        }
+        if selected != configuredInputID { needsRebuild = true }
         guard needsRebuild else { return }
+        // A hardware format change stops the engine but preserves its selected I/O device.
+        // Reinstall the tap/converter on that engine. Recreating VPIO would reopen the system
+        // default first and trigger the same device-switch notification indefinitely.
+        let keepInput = reuseInput && tapInstalled && configuredInputID == selected
+            && vpActive == voiceProcessing && Self.inputDeviceID(engine.inputNode) == selected
         engine.stop()
         running = false
         if tapInstalled { engine.inputNode.removeTap(onBus: 0); tapInstalled = false }
-        engine = AVAudioEngine()
+        if !keepInput { engine = AVAudioEngine() }
         let input = engine.inputNode
-        vpActive = false
-        if voiceProcessing {
+        // Bind the raw I/O unit before configuring voice processing. The latter has separate
+        // input/output devices: AUAudioUnit.deviceID only reads its OUTPUT (element 0).
+        if !keepInput { try input.auAudioUnit.setDeviceID(selected); vpActive = false }
+        if voiceProcessing && !keepInput {
             do {
                 try input.setVoiceProcessingEnabled(true)
                 // Minimise ducking during capture; releasing VPIO at stop lifts it fully.
@@ -401,8 +461,24 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
                 vpActive = false  // unsupported device/config: raw input rather than failing
             }
         }
+        guard let unit = input.audioUnit else { throw AudioError.noInputDevice }
+        var device = selected
+        let status = keepInput ? noErr : AudioUnitSetProperty(unit, kAudioOutputUnitProperty_CurrentDevice,
+                                                             kAudioUnitScope_Global, 1, &device, UInt32(MemoryLayout<AudioDeviceID>.size))
+        guard status == noErr, Self.inputDeviceID(input) == selected else {
+            throw AudioError.startFailed("The selected microphone could not be connected")
+        }
         let format = input.outputFormat(forBus: 0)
-        guard format.sampleRate > 0, format.channelCount > 0 else { throw AudioError.noInputDevice }
+        let hardwareFormat = input.inputFormat(forBus: 0)
+        guard format.sampleRate > 0, format.channelCount > 0,
+              format.sampleRate == hardwareFormat.sampleRate,
+              format.channelCount == hardwareFormat.channelCount else {
+            discardInputGraph()
+            throw AudioError.noInputDevice
+        }
+        let selection = preferredInputUID == nil ? "system" : "pinned"
+        let transport = InputTransportProbe.classify(InputTransportProbe.transport(selected))
+        Log.info("microphone configured: selection=\(selection) transport=\(transport) rate=\(format.sampleRate) channels=\(format.channelCount) voiceProcessing=\(vpActive)")
         let report: @Sendable (Float, Bool) -> Void = { [weak self] level, hitMax in
             if level > 0 { self?.onNonZeroCapture?() }
             Task { @MainActor in
@@ -411,10 +487,27 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
             }
         }
         guard let tap = path.makeTap(for: format, report: report) else { throw AudioError.noInputDevice }
-        input.installTap(onBus: 0, bufferSize: 1024, format: format, block: tap)
+        var error: NSError?
+        guard WLInstallTapAndPrepare(engine, input, tap, &error) else {
+            discardInputGraph()
+            throw error ?? AudioError.noInputDevice as NSError
+        }
         tapInstalled = true
-        engine.prepare()
+        configuredInputID = selected
         needsRebuild = false
+    }
+
+    private static func inputDeviceID(_ input: AVAudioInputNode) -> AudioDeviceID? {
+        guard let unit = input.audioUnit else { return nil }
+        var device: AudioDeviceID = 0
+        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+        guard AudioUnitGetProperty(unit, kAudioOutputUnitProperty_CurrentDevice,
+                                  kAudioUnitScope_Global, 1, &device, &size) == noErr else { return nil }
+        return device
+    }
+
+    func inputDeviceIDForTesting() -> AudioDeviceID? {
+        q.sync { tapInstalled ? Self.inputDeviceID(engine.inputNode) : nil }
     }
 
     /// The tap runs on the realtime audio thread; built nonisolated so no actor checks fire there.
@@ -422,7 +515,10 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
                                      analyzer: SpectrumAnalyzer, spectrum: SpectrumBands,
                                      report: @escaping @Sendable (Float, Bool) -> Void) -> AVAudioNodeTapBlock {
         return { buffer, _ in
-            guard sink.isListening, let out = resampler.convert(buffer), let data = out.floatChannelData else { return }
+            // A device can change after the graph was configured. Never interpret new-rate
+            // samples with the old converter while the configuration notification is queued.
+            guard sink.isListening, buffer.format == resampler.inputFormat,
+                  let out = resampler.convert(buffer), let data = out.floatChannelData else { return }
             let p = UnsafeBufferPointer(start: data[0], count: Int(out.frameLength))
             let hitMax = sink.append(p)
             guard sink.isActive else { return }  // warm only: ring fed, no level/spectrum
@@ -545,10 +641,12 @@ nonisolated public final class AudioRecorder: AudioCapturing, @unchecked Sendabl
 
 public enum AudioError: Error, LocalizedError {
     case noInputDevice
+    case selectedInputUnavailable
     case startFailed(String)
     public var errorDescription: String? {
         switch self {
         case .noInputDevice: return "No microphone input available"
+        case .selectedInputUnavailable: return "Your selected microphone is unavailable. Reconnect it or choose another microphone in Settings."
         case .startFailed(let m): return "Could not start microphone: \(m)"
         }
     }

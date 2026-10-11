@@ -7,6 +7,9 @@ import Observation
 public final class AppSettings {
     @ObservationIgnored private let defaults: UserDefaults
 
+    /// nil follows macOS; an explicit choice belongs to WisprLocal and survives reconnection.
+    public var preferredInputUID: String? { didSet { defaults.set(preferredInputUID, forKey: Keys.preferredInputUID) } }
+
     public var voiceProcessingEnabled: Bool { didSet { defaults.set(voiceProcessingEnabled, forKey: Keys.voiceProcessing) } }
     public var asrVariant: ASRModelVariant { didSet { defaults.set(asrVariant.rawValue, forKey: Keys.asrVariant) } }
     /// "Noisy room / other languages (Parakeet Ultra)". OFF (default) = "English (Parakeet v2)".
@@ -52,6 +55,7 @@ public final class AppSettings {
     public static let aiFormattingHelp = "Off: lists are still formatted automatically when you dictate list cues (\"first… second…\", \"number one\", \"bullet point\")."
 
     enum Keys {
+        static let preferredInputUID = "preferredInputUID"
         static let voiceProcessing = "voiceProcessingEnabled"
         static let asrVariant = "asrVariant"
         static let noisyRoomMode = "noisyRoomMode"
@@ -75,6 +79,7 @@ public final class AppSettings {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        preferredInputUID = defaults.string(forKey: Keys.preferredInputUID)
         // OFF by default since 2026-10-03: on a plane 15 of 20 real dictations had speech
         // digitally gated by voice processing (median 10 % silenced, gaps up to 481 ms) — deleted
         // speech is worse than noise. Only an explicit stored value turns it on.

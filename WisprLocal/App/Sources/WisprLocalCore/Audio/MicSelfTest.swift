@@ -77,8 +77,8 @@ public final class MicSelfTest {
     }
 
     /// The real recorder (a separate engine; the caller stops the warm mic first).
-    public static func live() -> MicSelfTest {
-        MicSelfTest(makeRecorder: { vp in AudioRecorder(voiceProcessingEnabled: vp) })
+    public static func live(preferredInputUID: String? = nil) -> MicSelfTest {
+        MicSelfTest(makeRecorder: { vp in AudioRecorder(voiceProcessingEnabled: vp, preferredInputUID: preferredInputUID) })
     }
 
     /// Current settings first; if voice processing is on, again with it off.

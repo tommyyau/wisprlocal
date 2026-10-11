@@ -57,6 +57,7 @@ public enum InfoTopic: String, CaseIterable, Sendable, Identifiable {
             "In very loud places, noise reduction can cut out quiet speech. If WisprLocal says your mic audio is cutting out, choose Standard, or turn Noise reduction off.",
         ]
         case .micTest: return [
+            "Choosing a microphone keeps WisprLocal on that mic even if your Mac changes its input. System default follows the Mac's current input instead. A disconnected selection must be reconnected or changed here.",
             "Records three seconds with your current settings and tells you, in plain words, whether the level is good and whether the audio cuts out.",
             "If Noise reduction is on, it records again with it off and shows both side by side.",
             "The test recordings stay in memory and are gone when you close the window.",

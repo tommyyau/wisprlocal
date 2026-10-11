@@ -2,13 +2,12 @@ import CoreAudio
 import Foundation
 import WisprLocalCore
 
-/// Microphones known to Core Audio. WisprLocal records from the Mac's *default input*
-/// (AVAudioEngine follows it and the recorder rebuilds on a device change), so choosing a mic
-/// here sets the system default input — the same switch as System Settings › Sound › Input.
+/// Microphones known to Core Audio. Explicit choices are pinned inside WisprLocal by UID.
 struct InputDevice: Identifiable, Hashable, Sendable {
     let id: AudioDeviceID
     let name: String
     let isBuiltIn: Bool
+    var uid: String = ""
 }
 
 enum InputDevices {
@@ -20,28 +19,20 @@ enum InputDevices {
         guard AudioObjectGetPropertyDataSize(AudioObjectID(kAudioObjectSystemObject), &addr, 0, nil, &size) == noErr else { return [] }
         var ids = [AudioDeviceID](repeating: 0, count: Int(size) / MemoryLayout<AudioDeviceID>.size)
         guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &addr, 0, nil, &size, &ids) == noErr else { return [] }
-        return ids.filter(hasInput).map { InputDevice(id: $0, name: name($0) ?? "Microphone", isBuiltIn: transport($0) == kAudioDeviceTransportTypeBuiltIn) }
+        return ids.filter(hasInput).compactMap { id in
+            guard let uid = InputTransportProbe.uid(id) else { return nil }
+            return InputDevice(id: id, name: name(id) ?? "Microphone",
+                               isBuiltIn: transport(id) == kAudioDeviceTransportTypeBuiltIn, uid: uid)
+        }
     }
 
-    /// The current input is the Mac's built-in mic (nil = unknown).
-    static func defaultInputIsBuiltIn() -> Bool? {
-        guard let id = defaultInputID() else { return nil }
+    static func selectedInputIsBuiltIn(uid: String?) -> Bool? {
+        guard let id = InputTransportProbe.selectedInputID(uid: uid) else { return nil }
         return transport(id) == kAudioDeviceTransportTypeBuiltIn
     }
 
     static func defaultInputID() -> AudioDeviceID? {
         InputTransportProbe.defaultInputID()
-    }
-
-    /// Only from an explicit user choice in the Microphone picker.
-    @discardableResult
-    static func setDefaultInput(_ id: AudioDeviceID) -> Bool {
-        var addr = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDefaultInputDevice,
-                                              mScope: kAudioObjectPropertyScopeGlobal,
-                                              mElement: kAudioObjectPropertyElementMain)
-        var dev = id
-        return AudioObjectSetPropertyData(AudioObjectID(kAudioObjectSystemObject), &addr, 0, nil,
-                                          UInt32(MemoryLayout<AudioDeviceID>.size), &dev) == noErr
     }
 
     private static func hasInput(_ id: AudioDeviceID) -> Bool {

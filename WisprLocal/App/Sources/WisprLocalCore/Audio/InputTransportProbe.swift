@@ -1,7 +1,35 @@
 import CoreAudio
+import Foundation
 
 /// Read-only CoreAudio queries. These never create an engine or open its input node.
 public enum InputTransportProbe {
+    /// Device IDs can change after reconnection; persist the stable UID instead.
+    public static func uid(_ id: AudioDeviceID) -> String? {
+        var addr = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceUID,
+                                              mScope: kAudioObjectPropertyScopeGlobal,
+                                              mElement: kAudioObjectPropertyElementMain)
+        var value: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        guard AudioObjectGetPropertyData(id, &addr, 0, nil, &size, &value) == noErr else { return nil }
+        return value?.takeRetainedValue() as String?
+    }
+
+    /// A disconnected explicit choice must not silently fall back to a different microphone.
+    public static func selectedInputID(uid: String?) -> AudioDeviceID? {
+        guard let uid else { return defaultInputID() }
+        var value = uid as CFString
+        var id: AudioDeviceID = 0
+        var addr = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyTranslateUIDToDevice,
+                                              mScope: kAudioObjectPropertyScopeGlobal,
+                                              mElement: kAudioObjectPropertyElementMain)
+        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+        let status = withUnsafePointer(to: &value) { qualifier in
+            AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &addr,
+                                       UInt32(MemoryLayout<CFString>.size), qualifier, &size, &id)
+        }
+        return status == noErr && id != 0 ? id : nil
+    }
+
     public static func defaultInputID() -> AudioDeviceID? {
         var addr = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDefaultInputDevice,
                                               mScope: kAudioObjectPropertyScopeGlobal,

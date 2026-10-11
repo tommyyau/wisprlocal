@@ -85,7 +85,8 @@ struct MicCheckSheet: View {
             live.beginMicTest()
             defer { live.endMicTest() }
             do {
-                results = try await MicSelfTest.live().run(currentVoiceProcessing: vp) { phase = $0 }
+                results = try await MicSelfTest.live(preferredInputUID: model.settings.preferredInputUID)
+                    .run(currentVoiceProcessing: vp) { phase = $0 }
             } catch {
                 self.error = error.localizedDescription
                 phase = nil

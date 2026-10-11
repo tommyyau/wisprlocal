@@ -2,7 +2,23 @@
 
 WisprLocal (formerly WisprLite) is a native macOS 26 dictation app with local speech recognition, cleanup, learning and history, an independent alternative to Wispr Flow: hold Globe/Fn, speak, and cleaned-up text appears at the cursor. This report consolidates every spike, benchmark, review round and automated test behind the design. S1, S1b and S4 measurements come from committed results files; P1, P2 and P2.1 measurements and review counts come from the task document, rather than committed raw results. Where a figure was not measured, it says so.
 
-Snapshot date: 2026-10-02. Last updated: 2026-10-08. Test record: 936 tests in 160 suites passed on 2026-10-08 (network-denied run: 936 passed; socket-dependent and opt-in tests are skipped).
+Snapshot date: 2026-10-02. Last updated: 2026-10-11. Latest release test record: 950 tests in 163 suites passed with installed models required. Dated sections distinguish automated checks from physical-device and manual acceptance checks.
+
+## Microphone selection and graph recovery — 2026-10-11
+
+The previous microphone picker changed the system default, while capture followed later system changes. The app now persists an optional device UID: a named microphone stays selected within WisprLocal; the separate System default choice follows macOS. An unavailable pinned microphone fails explicitly. Settings, self-test and capture resolve the same selection, and changing it clears the pre-roll ring.
+
+Two microphone lifecycle failures were reproduced: preparing an empty graph after releasing an idle input, and repeatedly rebuilding an idle graph on configuration changes. Idle changes now discard the graph and defer reopening until capture needs it. Preparation requires an installed tap. A narrow local Objective-C bridge converts AVAudioEngine tap-installation and preparation exceptions into recoverable errors. Tap installation uses the current native format, invalid hardware formats are rejected, and buffers arriving with a changed format are dropped until the converter is rebuilt.
+
+Verification of local build `202610111821`:
+
+- The release suite passed 950 tests in 163 suites with bundled models required, both normally and with network access denied (socket-dependent and opt-in tests skipped in the latter). Regression coverage includes actual framework exceptions, a valid offline graph, deferred idle recovery, changed-format buffers, selection persistence and missing devices.
+- An opt-in physical built-in microphone test passed two start/stop cycles with noise reduction off and two with it on. This is capture/routing evidence, not recognition accuracy evidence.
+- The signed installed executable matched the packaged executable. Bundle validation checked all v2, Ultra and VAD model hashes and required notices. Runtime permissions were ready.
+- With the lid open, built-in microphone pinned and noise reduction off, the owner confirmed a known spoken phrase was inserted correctly using hold-Globe/release. Recorded release-to-insertion latency for that attempt was 251 ms. Idle expiry and subsequent dictation completed without the reproduced crash/rebuild loop.
+- An automated speaker-to-microphone playback attempt produced incorrect recognition despite correct recognition of its source file. Its cause remains unresolved; it is not counted as a passing accuracy check. The live voice confirmation establishes the tested basic workflow, not broad transcription accuracy or every Bluetooth transition.
+
+Private audio, transcripts, device logs and detailed audit evidence remain in the ignored local build directory. Verification used the locally installed build; publication of a release is separate from these checks.
 
 ## Key-down startup regression — 2026-10-08
 
