@@ -13,16 +13,17 @@ import Foundation
     }
 
     /// An "AI formatting" cleaner that waits until the test lets it finish.
-    final class GatedCleaner: TextCleaner, @unchecked Sendable {
-        let name = "fm"
+    final class GatedModel: CleanupLanguageModel, CleanupLanguageSession, @unchecked Sendable {
+        var availability: CleanupModelAvailability { .available }
+        func makeSession(instructions: String) -> CleanupLanguageSession { self }
+        func prewarm() {}
         @MainActor var entered = false
         @MainActor private var waiter: CheckedContinuation<Void, Never>?
         @MainActor private var released = false
-        func clean(_ text: String) async -> String { await cleanDetailed(text).text }
-        func cleanDetailed(_ text: String) async -> CleanupOutcome {
+        func respond(to prompt: String) async throws -> String {
             await MainActor.run { entered = true }
             await waitForRelease()
-            return CleanupOutcome(text: text, producedBy: "fm", verdict: "ok")
+            return "Coffee at 3."
         }
         @MainActor private func waitForRelease() async {
             if released { return }
@@ -37,33 +38,65 @@ import Foundation
         await p.drain()
     }
 
-    /// 4 → 5 → 5b → 7 → 8 → 9: replacement, phonetic snap, context-name snap, rules, backtrack,
-    /// then the style (casual drops the final full stop) — each stage sees the previous one's text.
+    /// Dictionary → hesitation → stutter → punctuation → numeric backtrack → FM →
+    /// dictionary reapply → style. Uses explicit replacements so this order test does not
+    /// depend on the separate system-spellchecker integration tests.
     @Test func stagesRunInTheDocumentedOrder() async throws {
         let dict = tempDictionary()
         var d = dict.dictionary
         d.addTerm("Kubernetes")
+        d.addReplacement(from: "kuber netties", to: "Kubernetes")
         try dict.update(d)
-        let (e, p) = await makeEnv(text: "Tell Sean we ship kuber netties at 2, actually 3.", dictionary: dict)
-        p.contextProvider = FixedProvider(ContextSnapshot(candidates: [ContextCandidate("Shaun", kind: .name)], isCodeApp: false))
+        let (e, p) = await makeEnv(text: "Um I I ship kuber netties at 3, no wait, 4 period", dictionary: dict)
+        let m = FakeCleanupModel(.reply("I ship Kubernetes at 4."))
+        p.cleaner = FoundationModelsCleaner(model: m, vocabulary: { dict.dictionary.vocabulary })
         p.backtrackEnabled = { true }
         p.styleFor = { _ in .casual }
         await dictate(p)
-        #expect(e.inserter.inserted == ["Tell Shaun we ship Kubernetes at 3"])
+        #expect(e.inserter.inserted == ["I ship Kubernetes at 4"])
+        let prompt = try #require(m.prompts.withLock { $0.first })
+        let json = try #require(prompt.split(separator: "\n", maxSplits: 1).last).data(using: .utf8)!
+        let fields = try #require(JSONSerialization.jsonObject(with: json) as? [String: Any])
+        let dictation = try #require(fields["dictation"] as? String)
+        #expect(PlanTokens(dictation).surfaces == ["I", "ship", "Kubernetes", "at", "4"])
+        #expect(!prompt.contains("no wait") && !prompt.contains("kuber netties") && !prompt.contains("I I"))
         let h = try #require(e.history.entries.last)
-        #expect(h.contextSnaps == 1)
-        #expect(h.backtrackApplied == true)
-        #expect(h.style == "casual")
-        // Undo puts back the words as spoken, still snapped and styled (only the backtrack is undone).
-        #expect(p.pendingCorrection?.original == "Tell Shaun we ship Kubernetes at 2, actually 3")
+        #expect(h.backtrackApplied == true && h.style == "casual" && h.cleanupVerdict == "llm-projected")
+        #expect(p.pendingCorrection?.original == "I ship Kubernetes at 3, no wait, 4")
+    }
+
+    @Test func excludedContextNeverReachesModel() async throws {
+        let (e, p) = await makeEnv(text: "Please send the report today")
+        e.caret.context = CaretContext(preceding: "Private context name", elementID: 1)
+        p.contextProvider = FixedProvider(ContextSnapshot(candidates: [ContextCandidate("SecretName", kind: .name)], isCodeApp: false))
+        p.cleanupContextAllowed = { _ in false }
+        let m = FakeCleanupModel(.reply("Please send the report today."))
+        p.cleaner = FoundationModelsCleaner(model: m)
+        await dictate(p)
+        let prompt = try #require(m.prompts.withLock { $0.first })
+        #expect(!prompt.contains("Private context") && !prompt.contains("SecretName"))
+        #expect(e.history.entries.last?.final == "Please send the report today.")
+    }
+
+    @Test func caretContextAndNamesAreLocalBoundedHints() async throws {
+        let (e, p) = await makeEnv(text: "Please send the report today")
+        e.caret.context = CaretContext(preceding: String(repeating: "x", count: 450), elementID: 1)
+        p.contextProvider = FixedProvider(ContextSnapshot(candidates: [ContextCandidate("Shaun", kind: .name)], isCodeApp: false))
+        let m = FakeCleanupModel(.reply("Please send the report today."))
+        p.cleaner = FoundationModelsCleaner(model: m)
+        await dictate(p)
+        let prompt = try #require(m.prompts.withLock { $0.first })
+        #expect(prompt.contains("Shaun") && prompt.contains(String(repeating: "x", count: 300)))
+        #expect(!prompt.contains(String(repeating: "x", count: 301)))
+        #expect(e.history.entries.last?.cleanupVerdict == "llm-projected")
     }
 
     /// Esc while the (slow) AI formatter runs: nothing reaches backtrack, style, insert, auto-send
     /// or the learning watcher, and History records `cancelled` without text.
     @Test func escDuringAIFormattingStopsEveryLaterStage() async throws {
         let (e, p) = await makeEnv(text: "Coffee at 2, actually 3.")
-        let fm = GatedCleaner()
-        p.cleaner = fm
+        let fm = GatedModel()
+        p.cleaner = FoundationModelsCleaner(model: fm)
         p.backtrackEnabled = { true }
         p.styleFor = { _ in .casual }
         p.autoSendRequested = { true }

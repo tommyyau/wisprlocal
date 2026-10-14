@@ -5,106 +5,10 @@ import Synchronization
 @testable import WisprLocalCore
 
 // Release-to-text latency (STRUCTURAL): paste posted without waiting for the clipboard restore,
-// FM only where it can help (CleanupPolicy) and capped at 1.5 s, adaptive capture tail,
+// Semantic FM capped at 2 s, adaptive capture tail,
 // perceivedMs recorded, and a warm benchmark on the fixture.
 
-@Suite struct CleanupPolicyTests {
-    @Test func userEnabledAlwaysUsesModel() {
-        #expect(CleanupPolicy.decide(text: "hello there how are you", userEnabled: true, autoAvailable: true) == .model)
-        #expect(CleanupPolicy.decide(text: "hello there how are you", userEnabled: true, autoAvailable: false) == .model)
-    }
-
-    @Test func offWithoutListCuesUsesRules() {
-        for t in ["I think we should move the meeting to three pm",
-                  "one of the two options is fine",
-                  "the first thing I noticed was the noise",       // "first" without "second"
-                  "we need a new line of products",                // single "new line"
-                  "ok", ""] {
-            #expect(CleanupPolicy.decide(text: t, userEnabled: false, autoAvailable: true) == .rules, "\(t)")
-        }
-    }
-
-    @Test func offWithListCuesUsesAutoModel() {
-        let cases: [(String, String)] = [
-            ("first we buy milk second we buy eggs", "first/second"),
-            ("Firstly, the API. Secondly, the UI.", "first/second"),
-            ("number one milk number two eggs", "number one/two"),
-            ("point 1 latency point 2 cost", "point one/two"),
-            ("bullet point milk bullet point eggs", "bullet point"),
-            ("my list one, two, three, go", "one/two/three"),
-            ("1. Milk 2. Eggs", "1./2."),
-            ("dear John new line thanks new line Sam", "new line ×2"),
-        ]
-        for (t, cue) in cases {
-            #expect(CleanupPolicy.decide(text: t, userEnabled: false, autoAvailable: true) == .autoModel(cue: cue), "\(t)")
-        }
-    }
-
-    @Test func offWithCuesButNoAutoFormatterUsesRules() {
-        #expect(CleanupPolicy.decide(text: "number one milk number two eggs", userEnabled: false, autoAvailable: false) == .rules)
-    }
-
-    @Test func modelTimeoutIsCappedAt1500ms() {
-        #expect(CleanupPolicy.modelTimeout(.seconds(5)) == .milliseconds(1500))
-        #expect(CleanupPolicy.modelTimeout(.milliseconds(800)) == .milliseconds(800))
-        #expect(CleanupPolicy.modelTimeout(FoundationModelsCleaner.adaptiveTimeout(words: 1000)) == .milliseconds(1500))
-    }
-
-    @Test func fmCallNeverExceedsCapEvenWithLongFormula() async {
-        let clock = ManualClock()
-        let c = FoundationModelsCleaner(model: FakeCleanupModel(.hang), timeout: { _ in .seconds(5) }, clock: clock)
-        let run = Task { await c.cleanDetailed("so I think we should move the meeting to three PM") }
-        await clock.waitForSleepers(count: 1)
-        #expect(clock.nextDeadline == CleanupPolicy.maxModelTimeout, "the formula's 5 s is capped")
-        await clock.advance(by: CleanupPolicy.maxModelTimeout)
-        let r = await run.value
-        #expect(r.verdict == "timeout")
-    }
-
-    @MainActor @Test func aiFormattingDefaultsOffAndIgnoresLegacyKey() {
-        let d = UserDefaults(suiteName: "wl-test-\(UUID().uuidString)")!
-        d.set(true, forKey: "aiCleanupEnabled")   // pre-latency-fix default-ON key
-        let s = AppSettings(defaults: d)
-        #expect(s.aiCleanupEnabled == false)
-        s.aiCleanupEnabled = true
-        #expect(AppSettings(defaults: d).aiCleanupEnabled == true)
-    }
-}
-
-@MainActor @Suite struct AutoFormattingPipelineTests {
-    @Test func settingOffSkipsModelWithoutListCues() async {
-        let (e, p) = await makeEnv(text: "so I think we should move the meeting to three pm")
-        let m = FakeCleanupModel(.echo)
-        p.autoFormatter = FoundationModelsCleaner(model: m)
-        p.handle(.startRecording); p.handle(.commitRecording); await p.drain()
-        #expect(m.prompts.withLock { $0.count } == 0)
-        #expect(e.history.entries.last?.cleaner == "rules")
-    }
-
-    @Test func settingOffRunsModelOnListCues() async {
-        let (e, p) = await makeEnv(text: "number one milk number two eggs")
-        let m = FakeCleanupModel(.reply("1. Milk\n2. Eggs"))
-        p.autoFormatter = FoundationModelsCleaner(model: m)
-        p.handle(.startRecording)
-        #expect(m.prewarms.withLock { $0 } == 1)   // prewarmed while speaking
-        p.handle(.commitRecording); await p.drain()
-        #expect(m.prompts.withLock { $0.count } == 1)
-        let h = e.history.entries.last!
-        #expect(h.cleanupVerdict?.hasPrefix("auto(number one/two):") == true)
-    }
-
-    @Test func settingOnDoesNotUseAutoFormatter() async {
-        let (e, p) = await makeEnv(text: "number one milk number two eggs")
-        let auto = FakeCleanupModel(.echo), user = FakeCleanupModel(.echo)
-        p.autoFormatter = FoundationModelsCleaner(model: auto)
-        p.cleaner = FoundationModelsCleaner(model: user)
-        p.handle(.startRecording); p.handle(.commitRecording); await p.drain()
-        #expect(auto.prompts.withLock { $0.count } == 0)
-        #expect(auto.prewarms.withLock { $0 } == 0)
-        #expect(user.prompts.withLock { $0.count } == 1)
-        #expect(e.history.entries.count == 1)
-    }
-
+@MainActor @Suite struct CleanupLatencyTests {
     @Test func historyRecordsPerceivedAndStageBreakdown() async {
         let (e, p) = await makeEnv()
         p.captureTail = .milliseconds(200)
@@ -259,12 +163,12 @@ import Synchronization
         let p = DictationPipeline(
             audio: audio, trimmer: SileroSpeechTrimmer(locator: locator),
             transcriber: FluidAudioTranscriber(variant: .parakeetUltra, locator: locator),
-            dictionary: dictionary, cleaner: RuleCleaner(),   // AppSettings default: AI formatting OFF
+            dictionary: dictionary, cleaner: nil,   // AppSettings default: AI formatting OFF
             gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
             secureInput: FakeSecureInput(), clipboard: FakeClipboard(),
             inserterFor: { _ in (inserter, .paste) }, history: history,
             frontmostApp: { FrontmostApp(pid: 1, bundleID: "x") }, caretReader: FakeCaretReader(),
-            debugRecordings: nil, autoFormatter: .system)
+            debugRecordings: nil)
         p.captureTail = .zero   // tail excluded (reported separately in real use: 150–400 ms)
         await p.prepareModels()
         try #require(p.modelReady, "models not prepared: \(p.status)")

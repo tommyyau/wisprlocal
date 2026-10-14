@@ -118,7 +118,9 @@ public struct HistoryEntry: Codable, Sendable, Equatable, Identifiable {
     // P2 (all optional so P1 lines still decode)
     /// FM path verdict: "ok", "reject:<reason>", "timeout", "guardrail", "unavailable:<r>", …
     public var cleanupVerdict: String?
-    /// FM output that was NOT used (guard rejected) — for tuning.
+    /// Per-span accepted/restored reason counts, local only.
+    public var cleanupSpanVerdicts: [String: Int]?
+    /// Original model prose before projection, local only; never logged.
     public var cleanupCandidate: String?
     /// FM call latency (ms), when called.
     public var cleanupModelMs: Double?
@@ -181,7 +183,7 @@ public struct HistoryEntry: Codable, Sendable, Equatable, Identifiable {
 extension HistoryEntry {
     enum CodingKeys: String, CodingKey {
         case id, timestamp, raw, final, engine, cleaner, audioDuration, speechDuration, latencies, frontmostApp,
-             insertionStrategy, outcome, note, cleanupVerdict, cleanupCandidate, cleanupModelMs, snippetTrigger, join,
+             insertionStrategy, outcome, note, cleanupVerdict, cleanupCandidate, cleanupSpanVerdicts, cleanupModelMs, snippetTrigger, join,
              rawWordCount, language, voiceProcessingActive, zeroFraction, maxZeroRunMs, warmStart,
              inputLevelDBFS, noiseFloorDBFS, micMode, pasteVerified, pasteRetried, pasteRestoreDelayMs,
              style, backtrackApplied, contextSnaps
@@ -222,6 +224,7 @@ extension HistoryEntry {
         note = try c.decodeIfPresent(String.self, forKey: .note)
         cleanupVerdict = try c.decodeIfPresent(String.self, forKey: .cleanupVerdict)
         cleanupCandidate = try c.decodeIfPresent(String.self, forKey: .cleanupCandidate)
+        cleanupSpanVerdicts = try c.decodeIfPresent([String: Int].self, forKey: .cleanupSpanVerdicts)
         cleanupModelMs = try c.decodeIfPresent(Double.self, forKey: .cleanupModelMs)
         snippetTrigger = try c.decodeIfPresent(String.self, forKey: .snippetTrigger)
         join = try c.decodeIfPresent(String.self, forKey: .join)
@@ -249,6 +252,8 @@ public struct HistoryContent: Sendable, Equatable {
     public var raw = ""
     public var final = ""
     public var cleanupVerdict: String?
+    public var cleanupSpanVerdicts: [String: Int]?
+    /// Original model prose before projection, local only; never logged.
     public var cleanupCandidate: String?
     public var snippetTrigger: String?
     public var join: String?
@@ -259,7 +264,7 @@ public struct HistoryContent: Sendable, Equatable {
     public func attach(to entry: inout HistoryEntry) {
         guard entry.outcome.retainsContent else { return }
         entry.raw = raw; entry.final = final
-        entry.cleanupVerdict = cleanupVerdict; entry.cleanupCandidate = cleanupCandidate
+        entry.cleanupVerdict = cleanupVerdict; entry.cleanupCandidate = cleanupCandidate; entry.cleanupSpanVerdicts = cleanupSpanVerdicts
         entry.snippetTrigger = snippetTrigger; entry.join = join
     }
 }

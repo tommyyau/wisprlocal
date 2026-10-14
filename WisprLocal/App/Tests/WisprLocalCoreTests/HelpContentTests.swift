@@ -107,14 +107,14 @@ import Foundation
             #expect(text.contains("does not recognise every banking website"))
         }
         let cleanup = try #require(FAQ.items.first { $0.id == "cleanup" }).answer.joined(separator: " ")
-        #expect(cleanup.contains("everything you said before it in the current dictation"))
+        #expect(cleanup.contains("discards the preceding dictation"))
         #expect(cleanup.contains("at least three words"))
         #expect(cleanup.contains("Short or uncertain text gets English cleanup"))
     }
     @Test func formattingAndCaretCopyDisclosesAutomaticReads() throws {
         let cleanup = try #require(FAQ.items.first { $0.id == "cleanup" }).answer.joined()
-        #expect(cleanup.contains("Spoken list cues use it even when AI formatting is off"))
-        #expect(InfoTopic.aiFormatting.sentences.joined().contains("even when AI formatting is off"))
+        #expect(cleanup.contains("Light cleanup is the default"))
+        #expect(InfoTopic.aiFormatting.sentences.joined().contains("Choose Verbatim, Light or Medium"))
         let data = try #require(FAQ.items.first { $0.id == "data" }).answer.joined()
         for detail in ["64 characters", "1,000 selected characters", "memory only", "never saved",
                        "Secure fields", "Never read list", "banking/finance", "one preceding character"] {

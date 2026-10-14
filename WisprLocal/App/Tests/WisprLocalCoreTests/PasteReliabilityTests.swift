@@ -183,12 +183,12 @@ import Testing
         let front = FrontmostApp(pid: target.pid, bundleID: target.bundleID!)
         let (e, p) = await makeEnv(text: "Hello there.")
         let p2 = DictationPipeline(audio: FakeAudio(), trimmer: FakeTrimmer(), transcriber: FakeTranscriber(text: "Hello there."),
-                                   dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                   dictionary: tempDictionary(), cleaner: nil,
                                    gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                                    secureInput: e.secure, clipboard: e.clipboard,
                                    inserterFor: { _ in (paste, .paste) }, history: e.history,
                                    frontmostApp: { front },
-                                   caretReader: e.caret, debugRecordings: nil, autoFormatter: .none)
+                                   caretReader: e.caret, debugRecordings: nil)
         _ = p
         var notices: [String] = []
         p2.onNotice = { notices.append($0) }

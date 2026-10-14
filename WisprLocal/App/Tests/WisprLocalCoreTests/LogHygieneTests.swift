@@ -68,17 +68,4 @@ import Foundation
         #expect(Self.violations(in: ok, file: "ok").isEmpty)
     }
 
-    /// The logged form of every guard verdict carries no payload.
-    @Test func guardVerdictKindHasNoPayload() {
-        let secret = "Paris"
-        let reasons: [GuardReason] = [.emptyOutput, .emptyRaw, .preamble(secret), .trailer(secret),
-                                      .wordsChanged(secret), .caseChanged(secret), .repetition(secret),
-                                      .foreignCharacter(secret), .sentenceStructure, .midSentenceNewline, .downgrade]
-        for r in reasons {
-            let k = GuardVerdict.reject(r).kind
-            #expect(!k.contains(secret) && !k.contains("("), "\(k)")
-            #expect(k.hasPrefix("reject:"))
-        }
-        #expect(GuardVerdict.ok.kind == "ok")
-    }
 }

@@ -20,11 +20,11 @@ import Testing
         let paste = PasteInserter(pasteboard: NSPasteboardShim.make(), postPaste: { state.posts += 1 }, clock: clock,
                                  modifiersHeld: { state.held })
         let pipeline = DictationPipeline(audio: FakeAudio(), trimmer: FakeTrimmer(), transcriber: FakeTranscriber(text: "Hello there."),
-                                         dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                         dictionary: tempDictionary(), cleaner: nil,
                                          gate: ConflictDetector(runningApps: { state.apps }, fnUsageReader: { 0 }),
                                          secureInput: secure, clipboard: clipboard, inserterFor: { _ in (paste, .paste) },
                                          history: MemoryHistory(), frontmostApp: { state.front },
-                                         caretReader: FakeCaretReader(), debugRecordings: nil, autoFormatter: .none)
+                                         caretReader: FakeCaretReader(), debugRecordings: nil)
         pipeline.onBlockedByConflict = { state.conflictNotices += 1 }
         await pipeline.prepareModels()
         let task = Task { await pipeline.process(samples: ZeroGateDetectorTests.tone(16_000), target: target) }
@@ -180,12 +180,12 @@ extension PastePathRegressionTests {
     @Test func failureSupersedesPreviousSuccessfulRepaste() async {
         let env = PipelineEnv(text: "", speech: true, transcriber: nil)
         let pipeline = DictationPipeline(audio: env.audio, trimmer: FakeTrimmer(), transcriber: TwoDictations(),
-                                         dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                         dictionary: tempDictionary(), cleaner: nil,
                                          gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                                          secureInput: env.secure, clipboard: env.clipboard,
                                          inserterFor: { _ in (env.inserter, .paste) }, history: env.history,
                                          frontmostApp: { env.front }, caretReader: env.caret,
-                                         debugRecordings: nil, autoFormatter: .none)
+                                         debugRecordings: nil)
         await pipeline.prepareModels()
         _ = await pipeline.process(samples: env.audio.samples, target: env.front)
         env.inserter.failWith = InsertionError.eventCreationFailed
@@ -202,12 +202,12 @@ extension PastePathRegressionTests {
     func earlyRefusalPreservesPreviousSuccessfulRecovery(change: String) async {
         let env = PipelineEnv(text: "", speech: true, transcriber: nil)
         let pipeline = DictationPipeline(audio: env.audio, trimmer: FakeTrimmer(), transcriber: TwoDictations(),
-                                         dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                         dictionary: tempDictionary(), cleaner: nil,
                                          gate: ConflictDetector(runningApps: { env.apps }, fnUsageReader: { 0 }),
                                          secureInput: env.secure, clipboard: env.clipboard,
                                          inserterFor: { _ in (env.inserter, .paste) }, history: env.history,
                                          frontmostApp: { env.front }, caretReader: env.caret,
-                                         debugRecordings: nil, autoFormatter: .none)
+                                         debugRecordings: nil)
         await pipeline.prepareModels()
         _ = await pipeline.process(samples: env.audio.samples, target: env.front)
         if change == "secure" { env.secure.active = true }
@@ -253,11 +253,11 @@ extension PastePathRegressionTests {
                                  verifier: PasteReliabilityTests.FakeVerifier([PasteReliabilityTests.field]),
                                  target: { PasteReliabilityTests.native })
         let pipeline = DictationPipeline(audio: FakeAudio(), trimmer: FakeTrimmer(), transcriber: FakeTranscriber(text: "Hello there."),
-                                         dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                         dictionary: tempDictionary(), cleaner: nil,
                                          gate: ConflictDetector(runningApps: { state.apps }, fnUsageReader: { 0 }),
                                          secureInput: secure, clipboard: clipboard, inserterFor: { _ in (paste, .paste) },
                                          history: history, frontmostApp: { state.front },
-                                         caretReader: FakeCaretReader(), debugRecordings: nil, autoFormatter: .none)
+                                         caretReader: FakeCaretReader(), debugRecordings: nil)
         var notices: [String] = []
         pipeline.onNotice = { notices.append($0) }
         await pipeline.prepareModels()
@@ -309,9 +309,9 @@ extension PastePathRegressionTests {
             focus: { FocusToken(pid: target.pid, windowTitle: "Viewer") }, fallbackFor: { _, _ in paced })
         let pipeline = DictationPipeline(audio: FakeAudio(), trimmer: FakeTrimmer(),
             transcriber: FakeTranscriber(text: "Private dictation with enough characters."), dictionary: tempDictionary(),
-            cleaner: RuleCleaner(), gate: ConflictDetector(runningApps: { state.apps }, fnUsageReader: { 0 }),
+            cleaner: nil, gate: ConflictDetector(runningApps: { state.apps }, fnUsageReader: { 0 }),
             secureInput: secure, clipboard: clipboard, inserterFor: { _ in (guardedRemote, .remote) },
-            history: history, frontmostApp: { state.front }, caretReader: FakeCaretReader(), debugRecordings: nil, autoFormatter: .none)
+            history: history, frontmostApp: { state.front }, caretReader: FakeCaretReader(), debugRecordings: nil)
         var notices: [String] = []
         pipeline.onNotice = { notices.append($0) }
         await pipeline.prepareModels()

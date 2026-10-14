@@ -4,12 +4,22 @@ All notable changes to WisprLocal are recorded here. The format follows [Keep a 
 
 ## Unreleased
 
+- Fix repeated commas when speech recognition punctuates a spoken comma command. Absorb matching punctuation around converted commands while preserving unrelated punctuation and noun uses; cover rule cleanup, model projection and final insertion with AI enabled and disabled.
+
+- Phase A round 6: preserve existing input terminators and commas; block new sentence endings inside negation or auxiliary/verb continuations. Require incomplete false starts and protect parallel clauses, names and terms; compare subject predicates for explicit corrections. Return the exact rule floor for low alignment or mostly restored omissions. Share the short-input deletion budget and unfinished-placement check; render lists with an optional header; recognize spoken “period” after -ing/-al words at sentence boundaries. Record `llm-projected` and final accepted/restored span counts. Remove the whole-plan validator and injected-cleaner guard, test at the model boundary, and move strict latency gates into the opt-in benchmark while retaining 100 ms regression bounds.
+
+- Phase A round 5: replace guided indexed-plan generation with bounded free-text cleanup and input-order alignment projection. Validate each candidate deletion with shared round-4 rules, restore unsafe spans independently, and restore the largest non-retracted spans over the 35% cap. Ignore hallucinated words; accept Medium articles and safe punctuation/list formatting through the existing EditPlan renderer. Keep original model prose and per-span reason counts only in local History. Remove guided schemas, indexed-token prompts and rejected-plan diagnostics. Benchmark final output against model expectations with a rule-only baseline and model delta; live model measurements remain pending.
+
 - Show the microphone's starting indicator immediately on key-down and start the audio engine off the main actor. Release within 1 s of key-down before the first real audio of a cold start discards silently like a quick tap; longer holds show “Didn’t catch that” and save an outcome-only history entry, with a once-per-session “Hold until the bars appear” hint; Esc remains Cancel; readiness reads and stop cleanup no longer wait on engine work.
 - Record `keyDownToHUDMs` and `keyDownToCaptureMs` in history timings and troubleshooting metadata. Add controlled pending-start publication/return tests and bounded waits and an opt-in built-in microphone cold/warm VP benchmark (`WISPRLOCAL_START_BENCH=1`). Noise reduction remains off by default.
 - Show live bars immediately for an already-warm microphone with non-zero pre-roll audio; reserve the dim starting cue for cold starts.
 - Keep Background noise reduction warm under the existing readiness settings (Ready for 60 s after dictating or Always on), with the orange mic dot during that time. Preserve privacy drops, memory-only pre-roll zeroing and raw Bluetooth readiness and the Bluetooth exclusion with noise reduction on. Update Settings help and FAQ, and benchmark the production VP readiness window.
 
 ## 1.0.0 — source code only
+
+- Add shared deletion protection for negation/modality/scope and vocabulary; render original tokens with deterministic casing, punctuation and breaks. Fix screen-hint casing, deterministic spoken punctuation, clause discard and placement restarts. The current Phase A projection design is described under Unreleased.
+
+- Add Verbatim, Light (default) and Medium local cleanup with additive settings migration, conservative stutter/spoken-punctuation/backtrack rules, and bounded on-device Apple Intelligence semantic cleanup. Light accepts validated deletions; Medium can also insert articles. Preserve numbers and dictionary/context spellings, retain token spellings, and fall back to rules on rejection or model failure. Add a repository-authored golden corpus and opt-in `WISPRLOCAL_SMART_CLEANUP_BENCH=1` benchmark.
 
 - History, Home and search stay fast as history grows: newest entries load first, older days page in as you scroll, and new dictations update the screens without re-reading the file.
 

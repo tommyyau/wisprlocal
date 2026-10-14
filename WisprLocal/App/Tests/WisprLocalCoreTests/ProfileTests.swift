@@ -17,8 +17,8 @@ import Foundation
         let audio = FakeAudio()
         audio.samples = [Float](repeating: 0, count: 8_000) + speech + [Float](repeating: 0, count: 8_000)
         let history = MemoryHistory(), inserter = FakeInserter()
-        let cleaner: TextCleaner = SystemCleanupModel.currentAvailability.isAvailable
-            ? FoundationModelsCleaner(vocabulary: { ["Wispr Flow", "Tailscale"] }) : RuleCleaner()
+        let cleaner: FoundationModelsCleaner? = SystemCleanupModel.currentAvailability.isAvailable
+            ? FoundationModelsCleaner(vocabulary: { ["Wispr Flow", "Tailscale"] }) : nil
         let p = DictationPipeline(
             audio: audio, trimmer: SileroSpeechTrimmer(locator: locator),
             transcriber: FluidAudioTranscriber(variant: .parakeetUltra, locator: locator),
@@ -46,18 +46,18 @@ import Foundation
                      p50(\.insertMs), p50(\.totalMs), p95(\.totalMs)))
         print("PROFILE per-run cleanup/model ms:", warm.map { "\(Int($0.latencies.cleanupMs))/\(Int($0.cleanupModelMs ?? -1))" }.joined(separator: " "))
         print("PROFILE text:", warm.last?.final ?? "", "| verdict:", warm.last?.cleanupVerdict ?? "-", "| fm ms:", warm.last?.cleanupModelMs ?? -1)
-        // Non-model CPU work on the path (guard + rules + dictionary), measured directly.
+        // Non-model CPU work on the path (projection + rules + dictionary), measured directly.
         let raw = warm.last?.raw ?? "", out = warm.last?.final ?? ""
         let clock = ContinuousClock(), t0 = clock.now
-        for _ in 0..<200 { _ = OutputGuard.check(raw: raw, output: out, vocabulary: ["Wispr Flow", "Tailscale"]) }
+        for _ in 0..<200 { _ = AlignmentProjection.apply(input: raw, output: out, level: .light, dictionary: ["Wispr Flow", "Tailscale"]) }
         let g = durationMs(clock.now - t0) / 200
         let t1 = clock.now
         for _ in 0..<200 { _ = RuleCleaner().cleanSync(raw) }
         let r = durationMs(clock.now - t1) / 200
         let long = FMIntegrationTests.realistic.joined(separator: " ")
         let t2 = clock.now
-        for _ in 0..<20 { _ = OutputGuard.check(raw: long, output: long) }
+        for _ in 0..<20 { _ = AlignmentProjection.apply(input: long, output: long, level: .light) }
         let gl = durationMs(clock.now - t2) / 20
-        print(String(format: "PROFILE guard %.3f ms (fixture) / %.2f ms (%d-word input) | rules %.3f ms", g, gl, OutputGuard.words(long).count, r))
+        print(String(format: "PROFILE projection %.3f ms (fixture) / %.2f ms (%d-word input) | rules %.3f ms", g, gl, PlanTokens(long).surfaces.count, r))
     }
 }

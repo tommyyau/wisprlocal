@@ -109,7 +109,7 @@ import Foundation
         #expect(microphone == ["Microphone", "Noise reduction", "Microphone readiness", "Speech model"])
         let writing = try titles(block(read("Settings/WritingSettingsSection.swift"), "struct WritingSettingsSection", "private func overrideRow"), excluding: ["Apple Intelligence"])
             + titles(read("Settings/DictionarySettingsSection.swift"))
-        #expect(writing == ["AI formatting", "Fix “actually” corrections", "Per-app styles", "Learn words from my corrections", "Names and terms near your cursor"])
+        #expect(writing == ["Cleanup level", "Spoken punctuation", "Use on-device AI", "Fix “actually” corrections", "Per-app styles", "Learn words from my corrections", "Names and terms near your cursor"])
         let privacy = try titles(block(controls, "struct HistoryRetentionRow", "struct KeyHint"))
             + titles(block(view, "struct PrivacySettings", "struct MicPicker"))
         #expect(privacy == ["Keep history", "AppSettings.keepRecordingsLabel", "History folder", "Greet me by name on Home"])
@@ -123,7 +123,7 @@ import Foundation
         }.filter { $0 != "Default receiver" } // absent at defaults, guarded above
         #expect(remoteRows == ["Typing fallback"])
         let counts: [Int] = [general.count, microphone.count, writing.count, privacy.count, remoteRows.count]
-        #expect(counts == [5, 4, 5, 4, 1])
+        #expect(counts == [5, 4, 7, 4, 1])
     }
 
     /// Every settings path in user-facing copy and in code comments names a real section.

@@ -48,10 +48,10 @@ struct FixedDetector: LanguageDetecting {
     let inserter = env.inserter
     let p = DictationPipeline(
         audio: env.audio, trimmer: FakeTrimmer(), transcriber: engine,
-        dictionary: dictionary, cleaner: RuleCleaner(), gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
+        dictionary: dictionary, cleaner: nil, gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
         secureInput: env.secure, clipboard: env.clipboard,
         inserterFor: { _ in (inserter, .paste) }, history: env.history,
-        frontmostApp: { [unowned env] in env.front }, caretReader: env.caret, debugRecordings: nil, autoFormatter: .none,
+        frontmostApp: { [unowned env] in env.front }, caretReader: env.caret, debugRecordings: nil,
         languageDetector: detector)
     p.onNotice = { [unowned env] in env.notices.append($0) }
     p.captureTail = .zero

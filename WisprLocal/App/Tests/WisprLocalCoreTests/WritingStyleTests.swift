@@ -105,7 +105,7 @@ import Foundation
         defer { d.removePersistentDomain(forName: suite) }
         let s = StyleSettingsStore(defaults: d)
         #expect(s.configuration.enabled)
-        #expect(!s.backtrackEnabled)
+        #expect(s.backtrackEnabled)
         s.setStyle(.veryCasual, for: .messages)
         s.setOverride(.code, forBundleID: "com.example.app")
         let again = StyleSettingsStore(defaults: d)

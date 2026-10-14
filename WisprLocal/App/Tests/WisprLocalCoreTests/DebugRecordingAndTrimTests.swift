@@ -88,11 +88,11 @@ import Foundation
             let env = PipelineEnv(text: "Hello there, this is a test.", speech: true, transcriber: nil)
             let p = DictationPipeline(
                 audio: env.audio, trimmer: FakeTrimmer(hasSpeech: true), transcriber: env.transcriber,
-                dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                dictionary: tempDictionary(), cleaner: nil,
                 gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                 secureInput: env.secure, clipboard: env.clipboard,
                 inserterFor: { [inserter = env.inserter] _ in (inserter, .paste) }, history: env.history,
-                frontmostApp: { FrontmostApp(pid: 42, bundleID: "x") }, caretReader: env.caret, debugRecordings: store, autoFormatter: .none)
+                frontmostApp: { FrontmostApp(pid: 42, bundleID: "x") }, caretReader: env.caret, debugRecordings: store)
             p.captureTail = .zero
             await p.prepareModels()
             p.handle(.startRecording); p.handle(.commitRecording); await p.drain()

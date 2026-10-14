@@ -261,8 +261,8 @@ public enum CaretRead {
     public var timeout: Float = 0.05
     private let policy: AppReadPolicy
     private let ax: (@Sendable (Float) -> CaretAX)
-    public init(policy: AppReadPolicy = .defaults, ax: @escaping @Sendable (Float) -> CaretAX = { SystemCaretAX(timeout: $0) }) {
-        self.policy = policy; self.ax = ax
+    public init(policy: AppReadPolicy = .defaults, maxChars: Int = 64, ax: @escaping @Sendable (Float) -> CaretAX = { SystemCaretAX(timeout: $0) }) {
+        self.policy = policy; self.maxChars = maxChars; self.ax = ax
     }
 
     public func read(pid: Int32, bundleID: String?) async -> CaretContext {

@@ -15,17 +15,19 @@ public struct CleanupOutcome: Sendable, Equatable {
     public var text: String
     /// Cleaner that produced `text`: "rules" or "fm".
     public var producedBy: String
-    /// FM path only: "ok", "reject:<reason>", "timeout", "error:<…>", "guardrail",
-    /// "unavailable:<reason>", "skipped:short". nil for plain rule cleaning.
+    /// Model path: "llm-projected", "llm-rejected(<reason>)", "timeout",
+    /// "unavailable:<reason>" or "skipped:<reason>". nil for plain rule cleaning.
     public var verdict: String?
-    /// The FM candidate when it was NOT used (guard reject) — kept for tuning.
+    /// Per-span accepted/restored reason counts, retained only in local History.
+    public var spanVerdicts: [String: Int] = [:]
+    /// Generated prose, retained only in local History; never logged.
     public var candidate: String?
     /// FM latency (ms) when the model was called.
     public var modelMs: Double?
 
-    public init(text: String, producedBy: String, verdict: String? = nil, candidate: String? = nil, modelMs: Double? = nil) {
+    public init(text: String, producedBy: String, verdict: String? = nil, candidate: String? = nil, modelMs: Double? = nil, spanVerdicts: [String: Int] = [:]) {
         self.text = text; self.producedBy = producedBy; self.verdict = verdict
-        self.candidate = candidate; self.modelMs = modelMs
+        self.candidate = candidate; self.modelMs = modelMs; self.spanVerdicts = spanVerdicts
     }
 }
 
@@ -40,28 +42,12 @@ extension TextCleaner {
 /// cased). Only text we deliberately edit is touched; casing changes only where an edit left a
 /// lowercase letter at a sentence start (tracked with an internal marker).
 ///
-/// Rules:
-/// - Voice commands fire ONLY as standalone sentences — at the start of the text/line or right
-///   after `.`/`!`/`?`, and followed by `.`/`!`/`?`/`,` or end of line:
-///   "scratch that" deletes everything before it in the current dictation; "new line" / "new paragraph" → "\n" / "\n\n".
-///   ("Let's scratch that plan." and "a new line of products" are untouched.)
-/// - Hesitation fillers that are never real words (um, uh, uhm, erm, hmm) are removed as whole
-///   tokens in lowercase or Capitalised form ANYWHERE, no comma needed ("Um okay the" → "Okay the").
-///   Ambiguous ones (er, ah) only as lowercase tokens, or Capitalised at a sentence start when a
-///   comma follows ("Er the second one" survives). Never ALL-CAPS ("the ER", "UM" survive) and
-///   never hyphenated ("uh-huh", "uh-uh").
-/// - "like" is removed ONLY in ", like," ("I'd like us to", "something like, 5 minutes" survive).
-/// - ", you know," and sentence-initial "Well," / "So," (with the comma) are removed.
-/// - Unambiguous spoken numbers become digits (`SpokenNumbers.convert`): multi-word cardinals,
-///   decimals ("six point one" → 6.1), percentages ("fifty percent" → 50%) and version numbers
-///   after a name ("GPT five" → GPT 5, "v two" → v2). Single number words in prose stay words.
-/// - Inline corrections ("no wait", "I mean", "or rather", "sorry I meant", "actually") are LEFT
-///   VERBATIM — never applied (P2.1-final: nothing may delete content except "scratch that" as a
-///   standalone sentence). The opt-in `Backtrack` pass (OFF by default) runs AFTER cleanup and
-///   handles only unambiguous same-type slot restatements; see `FinalPasses`.
-/// This is the deterministic pre-pass the LLM receives; the LLM may only punctuate/case/lay out.
-/// - Spoken punctuation ("comma", "period") is NOT converted (Parakeet punctuates; "trial period").
-/// All regexes are compiled once (static).
+/// Explicit levels keep one deterministic floor: Verbatim removes hesitations and handles
+/// spoken numbers/new lines; Light/Medium then remove safe stutters, convert optional spoken
+/// punctuation, discard explicit cancellation commands and resolve same-type backtracks.
+/// Verbatim retains the original default rules; Light and Medium add semantic commands.
+/// Dictionary spellings arrive first. Every content-editing stage precedes the model.
+/// Regexes are compiled once; ambiguous content stays as spoken.
 public struct RuleCleaner: TextCleaner {
     public var name: String { "rules" }
     public init() {}
@@ -88,13 +74,6 @@ public struct RuleCleaner: TextCleaner {
     /// Capitalised ambiguous hesitation at a sentence start — ONLY when followed by a comma ("Er,").
     static let capFiller = re("(?:^|(?<=[.!?\u{1}]))([ \\t]*)(?:Er|Ah+)(?![\\p{L}\\p{N}'-])[ \\t]*,",
                               [.anchorsMatchLines])
-    /// ", like," — but not before a number ("it took, like, 5 minutes" = "about").
-    static let likeFiller = re(",[ \\t]*like[ \\t]*,(?![ \\t]*(?:[0-9]|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|a hundred|a few|a couple|half)\\b)", [.caseInsensitive])
-    /// ", like," directly before another comma-delimited aside keeps ONE comma:
-    /// "So, like, you know, it's fine." → "So, you know, it's fine."
-    static let likeBeforeAside = re(",[ \\t]*like[ \\t]*,(?=[ \\t]*(?:you know|i mean)[ \\t]*,)", [.caseInsensitive])
-    /// ", you know," — but not when it follows "like," (handled by `likeBeforeAside`).
-    static let youKnow = re("(?<!like),[ \\t]*\\byou know\\b[ \\t]*,", [.caseInsensitive])
     /// A whole utterance that is only "new line" / "new paragraph" (any case/punctuation).
     static let standaloneCommand = re("^[\\s.,!?]*(new line|new paragraph)[\\s.,!?]*$", [.caseInsensitive])
     /// Standalone "scratch that": at the start or after . ! ? / newline; ends with . ! , or end of
@@ -107,9 +86,10 @@ public struct RuleCleaner: TextCleaner {
     static let spacesAroundNewline = re("[ \\t]*\\n[ \\t]*")
 
     /// `vocabulary`: dictionary terms; a number spoken after one becomes digits ("Sol six" →
-    /// "Sol 6", see `SpokenNumbers.convert`). The guard re-runs this pre-pass with the SAME
-    /// vocabulary, so both sides agree.
-    public func cleanSync(_ input: String, vocabulary: [String] = []) -> String {
+    /// "Sol 6", see `SpokenNumbers.convert`). The pipeline shares this vocabulary
+    /// with projection and the correction Undo source.
+    public func cleanSync(_ input: String, vocabulary: [String] = [], level: CleanupLevel = .verbatim,
+                          spokenPunctuation: Bool = true, backtrack: Bool = true) -> String {
         // Standalone command: insert the break itself (never trimmed away as "empty").
         let ns = input as NSString
         if let m = Self.standaloneCommand.firstMatch(in: input, range: NSRange(location: 0, length: ns.length)) {
@@ -125,10 +105,15 @@ public struct RuleCleaner: TextCleaner {
         t = Self.replace(t, Self.strongFiller) { m, _ in m.range(at: 1).location != NSNotFound ? "" : Self.markS }
         t = Self.replace(t, Self.lowerFiller) { m, _ in m.range(at: 1).location != NSNotFound ? "" : Self.markS }
         t = Self.replace(t, Self.capFiller) { m, ns in ns.substring(with: m.range(at: 1)) + Self.markS }
-        t = Self.replace(t, Self.youKnow) { _, _ in "" }
-        t = Self.replace(t, Self.likeBeforeAside) { _, _ in "," }
-        t = Self.replace(t, Self.likeFiller) { _, _ in "" }
-        return Self.normalize(t)
+        t = FillerContext.removeRuleAsides(t)
+        t = Self.normalize(t)
+        if level != .verbatim {
+            t = StutterRemover.apply(t, vocabulary: vocabulary)
+            if spokenPunctuation { t = SpokenPunctuation.apply(t, vocabulary: vocabulary) }
+            t = DiscardCommand.apply(t)
+            if backtrack { t = Backtrack.apply(t).text }
+        }
+        return t
     }
 
     // MARK: commands

@@ -128,22 +128,22 @@ import Foundation
     }
 }
 
-/// Pipeline wiring: styles and backtrack are the last passes, backtrack is off by default,
+/// Pipeline wiring: deterministic backtrack precedes the model, styles run last,
 /// history records it, and Undo replaces the inserted text through the injected inserter.
 @MainActor @Suite struct BacktrackPipelineTests {
-    @Test func offByDefault() async throws {
+    @Test func pipelineCanOptOutAndStoreDefaultsOn() async throws {
         let (e, p) = await makeEnv(text: "Coffee at 2, actually 3.")
         await dictate(p)
         #expect(e.inserter.inserted == ["Coffee at 2, actually 3."])
         #expect(e.history.entries.last?.backtrackApplied == nil)
         #expect(p.pendingCorrection == nil)
         #expect(!e.notices.contains(PipelineNotice.corrected))
-        // The app's store also defaults OFF.
+        // The app store defaults ON; this fixture explicitly opts out.
         let suite = "bt-\(UUID().uuidString)"
         let d = try #require(UserDefaults(suiteName: suite))
         defer { d.removePersistentDomain(forName: suite) }
-        #expect(StyleSettingsStore(defaults: d).backtrackEnabled == false)
-        #expect(StyleSettingsStore.backtrackDefault == false)
+        #expect(StyleSettingsStore(defaults: d).backtrackEnabled == true)
+        #expect(StyleSettingsStore.backtrackDefault == true)
     }
 
     @Test func appliedCorrectionIsRecordedAndOffersUndo() async {

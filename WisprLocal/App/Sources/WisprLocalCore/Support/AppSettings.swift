@@ -31,16 +31,6 @@ public final class AppSettings {
     /// Takes effect on next launch.
     public var dictionaryURL: URL { didSet { defaults.set(dictionaryURL.path, forKey: Keys.dictionaryPath) } }
     public var onboardingCompleted: Bool { didSet { defaults.set(onboardingCompleted, forKey: Keys.onboarding) } }
-    /// "AI formatting (lists & punctuation) — adds up to ~1.5 s". OFF by
-    /// default: Parakeet already punctuates and the guard only lets the model change punctuation,
-    /// casing and list layout, so the 0.5–4 s FM call rarely pays. Even when OFF, the pipeline's
-    /// auto mode calls FM for utterances with list cues (`CleanupPolicy`). Persisted under a NEW
-    /// key (`aiFormattingEnabled`): the old `aiCleanupEnabled` key had a default-ON meaning and
-    /// is deliberately ignored, so existing installs start with the fast path.
-    public var aiCleanupEnabled: Bool { didSet { defaults.set(aiCleanupEnabled, forKey: Keys.aiCleanup) } }
-    /// MAX timeout for the FM cleanup call, seconds (default 5.0). The per-call timeout is
-    /// clamp(1.0 s + 15 ms × words, 2 s, this).
-    public var aiCleanupMaxTimeout: Double { didSet { defaults.set(aiCleanupMaxTimeout, forKey: Keys.aiCleanupMaxTimeout) } }
     /// "Keep last 20 recordings (on this Mac)" — ON by default (replay and Heard vs Inserted in
     /// History need a clip). Read live by `DebugRecordingStore` through the same UserDefaults key.
     public var keepDebugRecordings: Bool { didSet { defaults.set(keepDebugRecordings, forKey: Keys.keepDebugRecordings) } }
@@ -50,9 +40,6 @@ public final class AppSettings {
 
     /// Settings / onboarding label for `keepDebugRecordings`.
     public static let keepRecordingsLabel = "Keep last \(DebugRecordingStore.defaultLimit) recordings (on this Mac)"
-
-    /// Settings label for `aiCleanupEnabled`.
-    public static let aiFormattingHelp = "Off: lists are still formatted automatically when you dictate list cues (\"first… second…\", \"number one\", \"bullet point\")."
 
     enum Keys {
         static let preferredInputUID = "preferredInputUID"
@@ -66,10 +53,9 @@ public final class AppSettings {
         static let historyDir = "historyDirectory"
         static let dictionaryPath = "dictionaryPath"
         static let onboarding = "onboardingCompleted"
-        static let aiCleanup = "aiFormattingEnabled"
+        static let previousAIFormatting = "aiFormattingEnabled"
         /// Pre-latency-fix key (default ON); ignored.
-        static let legacyAICleanup = "aiCleanupEnabled"
-        static let aiCleanupMaxTimeout = "aiCleanupMaxTimeout"
+        static let previousAICleanup = "aiCleanupEnabled"
         static let keepDebugRecordings = DebugRecordingStore.defaultsKey
         static let greetByName = "greetByName"
     }
@@ -93,8 +79,6 @@ public final class AppSettings {
         historyDirectory = defaults.string(forKey: Keys.historyDir).map { URL(fileURLWithPath: $0) } ?? AppPaths.defaultHistoryDirectory
         dictionaryURL = defaults.string(forKey: Keys.dictionaryPath).map { URL(fileURLWithPath: $0) } ?? AppPaths.defaultDictionaryURL
         onboardingCompleted = defaults.bool(forKey: Keys.onboarding)
-        aiCleanupEnabled = defaults.object(forKey: Keys.aiCleanup) as? Bool ?? false
-        aiCleanupMaxTimeout = defaults.object(forKey: Keys.aiCleanupMaxTimeout) as? Double ?? 5.0
         // Never set → ON (also for existing installs); an explicit OFF is kept. Not written back
         // here, so "never set" stays distinguishable from "set to OFF".
         keepDebugRecordings = DebugRecordingStore.isEnabled(in: defaults)

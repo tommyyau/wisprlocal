@@ -70,7 +70,7 @@ public enum InfoTopic: String, CaseIterable, Sendable, Identifiable {
         ]
         case .aiFormatting: return [
             "Every dictation gets quick rule-based cleanup: filler words like “um” go, spacing is fixed and sentences are capitalised. History shows this as “rules”.",
-            "AI formatting adds Apple Intelligence on this Mac for punctuation (up to 1.5 s). Spoken list cues use it even when AI formatting is off. A guard checks every result, and if the model changes your words, your own words are typed instead, so History still says “rules”.",
+            "Choose Verbatim, Light or Medium in Settings › Writing. Verbatim removes hesitations. Light also removes stutters, handles spoken punctuation and corrections, and uses Apple Intelligence on this Mac to remove false starts. Medium can also insert “a”, “an” or “the”. The model adds up to 2 s; rejected or unavailable results fall back to rules.",
             "When text is confidently recognised as another language and has at least three words, it is typed as heard, with dictionary replacements. Short or uncertain text gets English cleanup.",
         ]
         case .dictionary: return [
@@ -169,9 +169,9 @@ public enum FAQ {
             "English (Parakeet v2) only speaks English, so switching back avoids language switching. Text confidently recognised as another language with at least three words is typed as heard; short or uncertain text gets English cleanup.",
         ]),
         Item(id: "cleanup", question: "What does cleanup do, and why does History say “rules”?", answer: [
-            "Every dictation gets quick rule-based cleanup: filler words like “um” go, “scratch that” removes everything you said before it in the current dictation, spacing is fixed and sentences are capitalised. That's what “rules” means in History.",
-            "AI formatting (off by default) adds Apple Intelligence for punctuation (up to 1.5 s). Spoken list cues use it even when AI formatting is off. A guard checks every AI result; if the model changed your words, your own words are typed and History still says “rules”.",
-            "Two final touches are rule-based too. Styles (Settings › Writing, on by default) only change the first capital and the final full stop to suit the app, so a chat gets no full stop and an email gets one. Fix “actually” corrections (off by default) types just the value you restated: “at 2, actually 3” becomes “at 3”, with Undo on the pill for 8 seconds, or “Corrected · can't undo here” with Copy original when undo is unavailable.",
+            "Every level removes hesitations like “um” and handles spoken numbers and new lines. Light and Medium also remove safe stutters, handle spoken punctuation and resolve quick corrections; a standalone “scratch that” discards the preceding dictation. That's what “rules” means in History.",
+            "Light cleanup is the default. Apple Intelligence removes fillers and false starts on this Mac, with a 2 s limit. The app validates an edit plan and applies it to your original words. Medium can also insert articles. Verbatim skips the model. Turn “Use on-device AI” off for rules-only Light or Medium. If the model cannot safely clean your text, History says “rules”.",
+            "Styles and quick corrections are rule-based too. Styles (Settings › Writing, on by default) only change the first capital and the final full stop to suit the app, so a chat gets no full stop and an email gets one. Fix “actually” corrections (on by default for Light/Medium) types just the value you restated: “at 2, actually 3” becomes “at 3”, with Undo on the pill for 8 seconds, or “Corrected · can't undo here” with Copy original when undo is unavailable.",
             "When text is confidently recognised as another language and has at least three words, it is typed as heard, with dictionary replacements. Short or uncertain text gets English cleanup.",
         ]),
         Item(id: "permissions", question: "Why the permissions, and why might they reset?", answer: [

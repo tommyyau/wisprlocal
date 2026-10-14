@@ -144,10 +144,10 @@ import Testing
         let trimmer = RangeTrimmer(speechStart: 9_000, speechEnd: 30_000)
         let asr = RecordingTranscriber()
         let p2 = DictationPipeline(audio: FakeAudio(), trimmer: trimmer, transcriber: asr, dictionary: tempDictionary(),
-                                   cleaner: RuleCleaner(), gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
+                                   cleaner: nil, gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                                    inserterFor: { _ in (FakeInserter(), .paste) },
                                    history: MemoryHistory(), frontmostApp: { nil }, caretReader: FakeCaretReader(),
-                                   debugRecordings: nil, autoFormatter: .none)
+                                   debugRecordings: nil)
         await p2.prepareModels()
         _ = await p2.process(samples: rec, target: nil)
         let r = SileroSpeechTrimmer.keptRange(speechStart: 9_000, speechEnd: 30_000, count: rec.count, sampleRate: 16_000,
@@ -285,9 +285,9 @@ import Testing
 
         let asr = RecordingTranscriber()
         let p = DictationPipeline(audio: FakeAudio(), trimmer: FakeTrimmer(), transcriber: asr, dictionary: tempDictionary(),
-                                  cleaner: RuleCleaner(), gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
+                                  cleaner: nil, gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                                   inserterFor: { _ in (FakeInserter(), .paste) }, history: MemoryHistory(), frontmostApp: { nil },
-                                  caretReader: FakeCaretReader(), debugRecordings: nil, autoFormatter: .none)
+                                  caretReader: FakeCaretReader(), debugRecordings: nil)
         await p.prepareModels()
         _ = await p.process(samples: captured, target: nil)
         #expect(asr.received.count == 1)

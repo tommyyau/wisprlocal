@@ -34,10 +34,12 @@ import Foundation
     let inserter = env.inserter
     let p = DictationPipeline(
         audio: audio ?? env.audio, trimmer: FakeTrimmer(hasSpeech: speech), transcriber: env.transcriber,
-        dictionary: dictionary, cleaner: RuleCleaner(), gate: detector,
+        dictionary: dictionary, cleaner: nil, gate: detector,
         secureInput: env.secure, clipboard: env.clipboard,
         inserterFor: { _ in (inserter, strategy) }, history: env.history,
-        frontmostApp: { [unowned env] in env.front }, caretReader: env.caret, debugRecordings: debugRecordings, autoFormatter: .none)
+        frontmostApp: { [unowned env] in env.front }, caretReader: env.caret, debugRecordings: debugRecordings)
+    // Tests opt out explicitly; the shipping pipeline/store default is ON.
+    p.backtrackEnabled = { false }
     p.onNotice = { [unowned env] in env.notices.append($0) }
     // The focused field holds everything typed so far (AX-readable, one window).
     env.focus.preceding = { [unowned env] in env.caret.context.preceding.map { $0 + env.inserter.inserted.joined() } }

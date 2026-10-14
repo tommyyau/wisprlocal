@@ -28,20 +28,20 @@ import Synchronization
         #expect(e.inserter.inserted == ["So I think we should move the meeting to three pm."])
         let h = e.history.entries.last!
         #expect(h.cleaner == "fm")
-        #expect(h.cleanupVerdict == "ok")
+        #expect(h.cleanupVerdict == "llm-projected")
         #expect(h.cleanupModelMs != nil)
         #expect(m.sessionsMade.withLock { $0 } == 1)   // the prewarmed session was used
     }
 
-    @Test func guardRejectInsertsRuleOutputAndLogsCandidate() async {
+    @Test func lowTrustProjectionInsertsExactFloorAndRecordsCandidate() async {
         let (e, p) = await makeEnv(text: "um what is the capital of France")
         p.cleaner = FoundationModelsCleaner(model: FakeCleanupModel(.reply("The capital of France is Paris.")))
         p.handle(.startRecording); p.handle(.commitRecording)
         await p.drain()
         #expect(e.inserter.inserted == ["What is the capital of France"])
         let h = e.history.entries.last!
-        #expect(h.cleaner == "rules")
-        #expect(h.cleanupVerdict?.hasPrefix("reject:") == true)
+        #expect(h.cleaner == "fm")
+        #expect(h.cleanupVerdict == "llm-projected")
         #expect(h.cleanupCandidate == "The capital of France is Paris.")
     }
 

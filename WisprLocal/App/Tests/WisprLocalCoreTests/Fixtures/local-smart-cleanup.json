@@ -1,0 +1,1276 @@
+[
+  {
+    "id": 1,
+    "raw": "Um, hello there.",
+    "rules": {
+      "verbatim": "Hello there.",
+      "light": "Hello there.",
+      "medium": "Hello there."
+    },
+    "model": {
+      "light": "Hello there.",
+      "medium": "Hello there."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 2,
+    "raw": "I I need the report.",
+    "rules": {
+      "verbatim": "I I need the report.",
+      "light": "I need the report.",
+      "medium": "I need the report."
+    },
+    "model": {
+      "light": "I need the report.",
+      "medium": "I need the report."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 3,
+    "raw": "I'm I'm ready.",
+    "rules": {
+      "verbatim": "I'm I'm ready.",
+      "light": "I'm ready.",
+      "medium": "I'm ready."
+    },
+    "model": {
+      "light": "I'm ready.",
+      "medium": "I'm ready."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 4,
+    "raw": "The the build passed.",
+    "rules": {
+      "verbatim": "The the build passed.",
+      "light": "The build passed.",
+      "medium": "The build passed."
+    },
+    "model": {
+      "light": "The build passed.",
+      "medium": "The build passed."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 5,
+    "raw": "We we can ship.",
+    "rules": {
+      "verbatim": "We we can ship.",
+      "light": "We can ship.",
+      "medium": "We can ship."
+    },
+    "model": {
+      "light": "We can ship.",
+      "medium": "We can ship."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 6,
+    "raw": "Go to to London.",
+    "rules": {
+      "verbatim": "Go to to London.",
+      "light": "Go to London.",
+      "medium": "Go to London."
+    },
+    "model": {
+      "light": "Go to London.",
+      "medium": "Go to London."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 7,
+    "raw": "I think I think we can ship.",
+    "rules": {
+      "verbatim": "I think I think we can ship.",
+      "light": "I think we can ship.",
+      "medium": "I think we can ship."
+    },
+    "model": {
+      "light": "I think we can ship.",
+      "medium": "I think we can ship."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 8,
+    "raw": "th- the build passed.",
+    "rules": {
+      "verbatim": "th- the build passed.",
+      "light": "the build passed.",
+      "medium": "the build passed."
+    },
+    "model": {
+      "light": "The build passed.",
+      "medium": "The build passed."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 9,
+    "raw": "wh- what happened?",
+    "rules": {
+      "verbatim": "wh- what happened?",
+      "light": "what happened?",
+      "medium": "what happened?"
+    },
+    "model": {
+      "light": "What happened?",
+      "medium": "What happened?"
+    },
+    "deterministic": true
+  },
+  {
+    "id": 10,
+    "raw": "very very good",
+    "rules": {
+      "verbatim": "very very good",
+      "light": "very very good",
+      "medium": "very very good"
+    },
+    "model": {
+      "light": "Very very good.",
+      "medium": "Very very good."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 11,
+    "raw": "really really fast",
+    "rules": {
+      "verbatim": "really really fast",
+      "light": "really really fast",
+      "medium": "really really fast"
+    },
+    "model": {
+      "light": "Really really fast.",
+      "medium": "Really really fast."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 12,
+    "raw": "no no thanks",
+    "rules": {
+      "verbatim": "no no thanks",
+      "light": "no no thanks",
+      "medium": "no no thanks"
+    },
+    "model": {
+      "light": "No no thanks.",
+      "medium": "No no thanks."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 13,
+    "raw": "bye bye",
+    "rules": {
+      "verbatim": "bye bye",
+      "light": "bye bye",
+      "medium": "bye bye"
+    },
+    "model": {
+      "light": "Bye bye.",
+      "medium": "Bye bye."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 14,
+    "raw": "I know that that is fine.",
+    "rules": {
+      "verbatim": "I know that that is fine.",
+      "light": "I know that that is fine.",
+      "medium": "I know that that is fine."
+    },
+    "model": {
+      "light": "I know that that is fine.",
+      "medium": "I know that that is fine."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 15,
+    "raw": "5 5 files",
+    "rules": {
+      "verbatim": "5 5 files",
+      "light": "5 5 files",
+      "medium": "5 5 files"
+    },
+    "model": {
+      "light": "5 5 files.",
+      "medium": "5 5 files."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 16,
+    "raw": "He said “I I agree”.",
+    "rules": {
+      "verbatim": "He said “I I agree”.",
+      "light": "He said “I I agree”.",
+      "medium": "He said “I I agree”."
+    },
+    "model": {
+      "light": "He said “I I agree”.",
+      "medium": "He said “I I agree”."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 17,
+    "raw": "Hello comma world",
+    "rules": {
+      "verbatim": "Hello comma world",
+      "light": "Hello, world",
+      "medium": "Hello, world"
+    },
+    "model": {
+      "light": "Hello, world.",
+      "medium": "Hello, world."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 18,
+    "raw": "Hello period next task",
+    "rules": {
+      "verbatim": "Hello period next task",
+      "light": "Hello. Next task",
+      "medium": "Hello. Next task"
+    },
+    "model": {
+      "light": "Hello. Next task.",
+      "medium": "Hello. Next task."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 19,
+    "raw": "Hello full stop next task",
+    "rules": {
+      "verbatim": "Hello full stop next task",
+      "light": "Hello. Next task",
+      "medium": "Hello. Next task"
+    },
+    "model": {
+      "light": "Hello. Next task.",
+      "medium": "Hello. Next task."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 20,
+    "raw": "Are you ready question mark",
+    "rules": {
+      "verbatim": "Are you ready question mark",
+      "light": "Are you ready?",
+      "medium": "Are you ready?"
+    },
+    "model": {
+      "light": "Are you ready?",
+      "medium": "Are you ready?"
+    },
+    "deterministic": true
+  },
+  {
+    "id": 21,
+    "raw": "Great exclamation point",
+    "rules": {
+      "verbatim": "Great exclamation point",
+      "light": "Great!",
+      "medium": "Great!"
+    },
+    "model": {
+      "light": "Great!",
+      "medium": "Great!"
+    },
+    "deterministic": true
+  },
+  {
+    "id": 22,
+    "raw": "Great exclamation mark",
+    "rules": {
+      "verbatim": "Great exclamation mark",
+      "light": "Great!",
+      "medium": "Great!"
+    },
+    "model": {
+      "light": "Great!",
+      "medium": "Great!"
+    },
+    "deterministic": true
+  },
+  {
+    "id": 23,
+    "raw": "items colon milk and bread",
+    "rules": {
+      "verbatim": "items colon milk and bread",
+      "light": "items: milk and bread",
+      "medium": "items: milk and bread"
+    },
+    "model": {
+      "light": "Items: milk and bread.",
+      "medium": "Items: milk and bread."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 24,
+    "raw": "Done semicolon next task",
+    "rules": {
+      "verbatim": "Done semicolon next task",
+      "light": "Done; next task",
+      "medium": "Done; next task"
+    },
+    "model": {
+      "light": "Done; next task.",
+      "medium": "Done; next task."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 25,
+    "raw": "Use a comma here.",
+    "rules": {
+      "verbatim": "Use a comma here.",
+      "light": "Use a comma here.",
+      "medium": "Use a comma here."
+    },
+    "model": {
+      "light": "Use a comma here.",
+      "medium": "Use a comma here."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 26,
+    "raw": "The period of time matters.",
+    "rules": {
+      "verbatim": "The period of time matters.",
+      "light": "The period of time matters.",
+      "medium": "The period of time matters."
+    },
+    "model": {
+      "light": "The period of time matters.",
+      "medium": "The period of time matters."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 27,
+    "raw": "This period matters.",
+    "rules": {
+      "verbatim": "This period matters.",
+      "light": "This period matters.",
+      "medium": "This period matters."
+    },
+    "model": {
+      "light": "This period matters.",
+      "medium": "This period matters."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 28,
+    "raw": "Press the dash key.",
+    "rules": {
+      "verbatim": "Press the dash key.",
+      "light": "Press the dash key.",
+      "medium": "Press the dash key."
+    },
+    "model": {
+      "light": "Press the dash key.",
+      "medium": "Press the dash key."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 29,
+    "raw": "A period of time.",
+    "rules": {
+      "verbatim": "A period of time.",
+      "light": "A period of time.",
+      "medium": "A period of time."
+    },
+    "model": {
+      "light": "A period of time.",
+      "medium": "A period of time."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 30,
+    "raw": "Treat colon cancer.",
+    "rules": {
+      "verbatim": "Treat colon cancer.",
+      "light": "Treat colon cancer.",
+      "medium": "Treat colon cancer."
+    },
+    "model": {
+      "light": "Treat colon cancer.",
+      "medium": "Treat colon cancer."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 31,
+    "raw": "Say literal comma here.",
+    "rules": {
+      "verbatim": "Say literal comma here.",
+      "light": "Say comma here.",
+      "medium": "Say comma here."
+    },
+    "model": {
+      "light": "Say comma here.",
+      "medium": "Say comma here."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 32,
+    "raw": "He said open quote hello close quote",
+    "rules": {
+      "verbatim": "He said open quote hello close quote",
+      "light": "He said “hello”",
+      "medium": "He said “hello”"
+    },
+    "model": {
+      "light": "He said “hello”.",
+      "medium": "He said “hello”."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 33,
+    "raw": "Use open paren notes close paren",
+    "rules": {
+      "verbatim": "Use open paren notes close paren",
+      "light": "Use (notes)",
+      "medium": "Use (notes)"
+    },
+    "model": {
+      "light": "Use (notes).",
+      "medium": "Use (notes)."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 34,
+    "raw": "Go dash now",
+    "rules": {
+      "verbatim": "Go dash now",
+      "light": "Go — now",
+      "medium": "Go — now"
+    },
+    "model": {
+      "light": "Go — now.",
+      "medium": "Go — now."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 35,
+    "raw": "well hyphen known",
+    "rules": {
+      "verbatim": "well hyphen known",
+      "light": "well-known",
+      "medium": "well-known"
+    },
+    "model": {
+      "light": "Well-known.",
+      "medium": "Well-known."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 36,
+    "raw": "Meet at 3, no wait, 4.",
+    "rules": {
+      "verbatim": "Meet at 3, no wait, 4.",
+      "light": "Meet at 4.",
+      "medium": "Meet at 4."
+    },
+    "model": {
+      "light": "Meet at 4.",
+      "medium": "Meet at 4."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 37,
+    "raw": "Tuesday, actually Wednesday.",
+    "rules": {
+      "verbatim": "Tuesday, actually Wednesday.",
+      "light": "Wednesday.",
+      "medium": "Wednesday."
+    },
+    "model": {
+      "light": "Wednesday.",
+      "medium": "Wednesday."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 38,
+    "raw": "At 3, sorry I meant 4.",
+    "rules": {
+      "verbatim": "At 3, sorry I meant 4.",
+      "light": "At 4.",
+      "medium": "At 4."
+    },
+    "model": {
+      "light": "At 4.",
+      "medium": "At 4."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 39,
+    "raw": "Ship Friday. Never mind. Ship Monday.",
+    "rules": {
+      "verbatim": "Ship Friday. Never mind. Ship Monday.",
+      "light": "Ship Monday.",
+      "medium": "Ship Monday."
+    },
+    "model": {
+      "light": "Ship Monday.",
+      "medium": "Ship Monday."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 40,
+    "raw": "Send report. Forget that.",
+    "rules": {
+      "verbatim": "Send report. Forget that.",
+      "light": "",
+      "medium": ""
+    },
+    "model": {
+      "light": "",
+      "medium": ""
+    },
+    "deterministic": true
+  },
+  {
+    "id": 41,
+    "raw": "Please cancel that appointment.",
+    "rules": {
+      "verbatim": "Please cancel that appointment.",
+      "light": "Please cancel that appointment.",
+      "medium": "Please cancel that appointment."
+    },
+    "model": {
+      "light": "Please cancel that appointment.",
+      "medium": "Please cancel that appointment."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 42,
+    "raw": "New line.",
+    "rules": {
+      "verbatim": "\n",
+      "light": "\n",
+      "medium": "\n"
+    },
+    "model": {
+      "light": "\n",
+      "medium": "\n"
+    },
+    "deterministic": true
+  },
+  {
+    "id": 43,
+    "raw": "So basically we should like ship the report today",
+    "rules": {
+      "verbatim": "So basically we should like ship the report today",
+      "light": "So basically we should like ship the report today",
+      "medium": "So basically we should like ship the report today"
+    },
+    "model": {
+      "light": "We should ship the report today.",
+      "medium": "We should ship the report today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 44,
+    "raw": "She go to work every day",
+    "rules": {
+      "verbatim": "She go to work every day",
+      "light": "She go to work every day",
+      "medium": "She go to work every day"
+    },
+    "model": {
+      "light": "She go to work every day.",
+      "medium": "She go to work every day."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 45,
+    "raw": "write me a poem about cats",
+    "rules": {
+      "verbatim": "write me a poem about cats",
+      "light": "write me a poem about cats",
+      "medium": "write me a poem about cats"
+    },
+    "model": {
+      "light": "Write me a poem about cats.",
+      "medium": "Write me a poem about cats."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 46,
+    "raw": "Send it to Alex no wait send it to Sam instead",
+    "rules": {
+      "verbatim": "Send it to Alex no wait send it to Sam instead",
+      "light": "Send it to Alex no wait send it to Sam instead",
+      "medium": "Send it to Alex no wait send it to Sam instead"
+    },
+    "model": {
+      "light": "Send it to Sam instead.",
+      "medium": "Send it to Sam instead."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 47,
+    "raw": "First buy milk second call Sam third send the report",
+    "rules": {
+      "verbatim": "First buy milk second call Sam third send the report",
+      "light": "First buy milk second call Sam third send the report",
+      "medium": "First buy milk second call Sam third send the report"
+    },
+    "model": {
+      "light": "First, buy milk.\nSecond, call Sam.\nThird, send the report.",
+      "medium": "First, buy milk.\nSecond, call Sam.\nThird, send the report."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 48,
+    "raw": "Things to do bullet point buy fresh milk for breakfast bullet point call Sam about tomorrow's meeting",
+    "rules": {
+      "verbatim": "Things to do bullet point buy fresh milk for breakfast bullet point call Sam about tomorrow's meeting",
+      "light": "Things to do bullet point buy fresh milk for breakfast bullet point call Sam about tomorrow's meeting",
+      "medium": "Things to do bullet point buy fresh milk for breakfast bullet point call Sam about tomorrow's meeting"
+    },
+    "model": {
+      "light": "Things to do:\n- Buy fresh milk for breakfast.\n- Call Sam about tomorrow's meeting.",
+      "medium": "Things to do:\n- Buy fresh milk for breakfast.\n- Call Sam about tomorrow's meeting."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 49,
+    "raw": "So basically we should send the report today",
+    "rules": {
+      "verbatim": "So basically we should send the report today",
+      "light": "So basically we should send the report today",
+      "medium": "So basically we should send the report today"
+    },
+    "model": {
+      "light": "We should send the report today.",
+      "medium": "We should send the report today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 50,
+    "raw": "We should like send the report to legal today",
+    "rules": {
+      "verbatim": "We should like send the report to legal today",
+      "light": "We should like send the report to legal today",
+      "medium": "We should like send the report to legal today"
+    },
+    "model": {
+      "light": "We should send the report to legal today.",
+      "medium": "We should send the report to legal today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 51,
+    "raw": "I kind of think we can finish the build today",
+    "rules": {
+      "verbatim": "I kind of think we can finish the build today",
+      "light": "I kind of think we can finish the build today",
+      "medium": "I kind of think we can finish the build today"
+    },
+    "model": {
+      "light": "I think we can finish the build today.",
+      "medium": "I think we can finish the build today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 52,
+    "raw": "I sort of think the design looks good today",
+    "rules": {
+      "verbatim": "I sort of think the design looks good today",
+      "light": "I sort of think the design looks good today",
+      "medium": "I sort of think the design looks good today"
+    },
+    "model": {
+      "light": "I think the design looks good today.",
+      "medium": "I think the design looks good today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 53,
+    "raw": "Well basically the report is ready for review today",
+    "rules": {
+      "verbatim": "Well basically the report is ready for review today",
+      "light": "Well basically the report is ready for review today",
+      "medium": "Well basically the report is ready for review today"
+    },
+    "model": {
+      "light": "The report is ready for review today.",
+      "medium": "The report is ready for review today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 54,
+    "raw": "I was I was thinking we could call the team today",
+    "rules": {
+      "verbatim": "I was I was thinking we could call the team today",
+      "light": "I was I was thinking we could call the team today",
+      "medium": "I was I was thinking we could call the team today"
+    },
+    "model": {
+      "light": "I was thinking we could call the team today.",
+      "medium": "I was thinking we could call the team today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 55,
+    "raw": "We need we need the updated report for the meeting",
+    "rules": {
+      "verbatim": "We need we need the updated report for the meeting",
+      "light": "We need we need the updated report for the meeting",
+      "medium": "We need we need the updated report for the meeting"
+    },
+    "model": {
+      "light": "We need the updated report for the meeting.",
+      "medium": "We need the updated report for the meeting."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 56,
+    "raw": "Please send please send the report to the team today",
+    "rules": {
+      "verbatim": "Please send please send the report to the team today",
+      "light": "Please send please send the report to the team today",
+      "medium": "Please send please send the report to the team today"
+    },
+    "model": {
+      "light": "Please send the report to the team today.",
+      "medium": "Please send the report to the team today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 57,
+    "raw": "Send it tomorrow, I mean send it today please",
+    "rules": {
+      "verbatim": "Send it tomorrow, I mean send it today please",
+      "light": "Send it tomorrow, I mean send it today please",
+      "medium": "Send it tomorrow, I mean send it today please"
+    },
+    "model": {
+      "light": "Send it today please.",
+      "medium": "Send it today please."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 58,
+    "raw": "Use the old draft, actually use the new draft for review",
+    "rules": {
+      "verbatim": "Use the old draft, actually use the new draft for review",
+      "light": "Use the old draft, actually use the new draft for review",
+      "medium": "Use the old draft, actually use the new draft for review"
+    },
+    "model": {
+      "light": "Use the new draft for review.",
+      "medium": "Use the new draft for review."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 59,
+    "raw": "Meet in the lobby, sorry meet at the entrance today",
+    "rules": {
+      "verbatim": "Meet in the lobby, sorry meet at the entrance today",
+      "light": "Meet in the lobby, sorry meet at the entrance today",
+      "medium": "Meet in the lobby, sorry meet at the entrance today"
+    },
+    "model": {
+      "light": "Meet at the entrance today.",
+      "medium": "Meet at the entrance today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 60,
+    "raw": "First review the plan second call the team third send the report",
+    "rules": {
+      "verbatim": "First review the plan second call the team third send the report",
+      "light": "First review the plan second call the team third send the report",
+      "medium": "First review the plan second call the team third send the report"
+    },
+    "model": {
+      "light": "First, review the plan.\nSecond, call the team.\nThird, send the report.",
+      "medium": "First, review the plan.\nSecond, call the team.\nThird, send the report."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 61,
+    "raw": "Buy apples and buy bread and buy milk for breakfast",
+    "rules": {
+      "verbatim": "Buy apples and buy bread and buy milk for breakfast",
+      "light": "Buy apples and buy bread and buy milk for breakfast",
+      "medium": "Buy apples and buy bread and buy milk for breakfast"
+    },
+    "model": {
+      "light": "Buy apples, buy bread, and buy milk for breakfast.",
+      "medium": "Buy apples, buy bread, and buy milk for breakfast."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 62,
+    "raw": "So basically first send the report second call the team",
+    "rules": {
+      "verbatim": "So basically first send the report second call the team",
+      "light": "So basically first send the report second call the team",
+      "medium": "So basically first send the report second call the team"
+    },
+    "model": {
+      "light": "First, send the report.\nSecond, call the team.",
+      "medium": "First, send the report.\nSecond, call the team."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 63,
+    "raw": "We need uh the report and basically the updated plan today",
+    "rules": {
+      "verbatim": "We need the report and basically the updated plan today",
+      "light": "We need the report and basically the updated plan today",
+      "medium": "We need the report and basically the updated plan today"
+    },
+    "model": {
+      "light": "We need the report and the updated plan today.",
+      "medium": "We need the report and the updated plan today."
+    },
+    "deterministic": false
+  },
+  {
+    "id": 64,
+    "raw": "I do not agree with the 5 proposals",
+    "rules": {
+      "verbatim": "I do not agree with the 5 proposals",
+      "light": "I do not agree with the 5 proposals",
+      "medium": "I do not agree with the 5 proposals"
+    },
+    "model": {
+      "light": "I do not agree with the 5 proposals.",
+      "medium": "I do not agree with the 5 proposals."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 65,
+    "raw": "I can't come",
+    "rules": {
+      "verbatim": "I can't come",
+      "light": "I can't come",
+      "medium": "I can't come"
+    },
+    "model": {
+      "light": "I can't come.",
+      "medium": "I can't come."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 66,
+    "raw": "I will definitely come",
+    "rules": {
+      "verbatim": "I will definitely come",
+      "light": "I will definitely come",
+      "medium": "I will definitely come"
+    },
+    "model": {
+      "light": "I will definitely come.",
+      "medium": "I will definitely come."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 67,
+    "raw": "coffee with sugar",
+    "rules": {
+      "verbatim": "coffee with sugar",
+      "light": "coffee with sugar",
+      "medium": "coffee with sugar"
+    },
+    "model": {
+      "light": "Coffee with sugar.",
+      "medium": "Coffee with sugar."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 68,
+    "raw": "meet before lunch",
+    "rules": {
+      "verbatim": "meet before lunch",
+      "light": "meet before lunch",
+      "medium": "meet before lunch"
+    },
+    "model": {
+      "light": "Meet before lunch.",
+      "medium": "Meet before lunch."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 69,
+    "raw": "Hi Bob, sorry for the delay. The invoice total is 450 dollars.",
+    "rules": {
+      "verbatim": "Hi Bob, sorry for the delay. The invoice total is 450 dollars.",
+      "light": "Hi Bob, sorry for the delay. The invoice total is 450 dollars.",
+      "medium": "Hi Bob, sorry for the delay. The invoice total is 450 dollars."
+    },
+    "model": {
+      "light": "Hi Bob, sorry for the delay. The invoice total is 450 dollars.",
+      "medium": "Hi Bob, sorry for the delay. The invoice total is 450 dollars."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 70,
+    "raw": "Thanks, no rush. Please send the 5 contracts to legal and copy Jane.",
+    "rules": {
+      "verbatim": "Thanks, no rush. Please send the 5 contracts to legal and copy Jane.",
+      "light": "Thanks, no rush. Please send the 5 contracts to legal and copy Jane.",
+      "medium": "Thanks, no rush. Please send the 5 contracts to legal and copy Jane."
+    },
+    "model": {
+      "light": "Thanks, no rush. Please send the 5 contracts to legal and copy Jane.",
+      "medium": "Thanks, no rush. Please send the 5 contracts to legal and copy Jane."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 71,
+    "raw": "Yes, cancel that.",
+    "rules": {
+      "verbatim": "Yes, cancel that.",
+      "light": "Yes, cancel that.",
+      "medium": "Yes, cancel that."
+    },
+    "model": {
+      "light": "Yes, cancel that.",
+      "medium": "Yes, cancel that."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 72,
+    "raw": "Okay, never mind.",
+    "rules": {
+      "verbatim": "Okay, never mind.",
+      "light": "Okay, never mind.",
+      "medium": "Okay, never mind."
+    },
+    "model": {
+      "light": "Okay, never mind.",
+      "medium": "Okay, never mind."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 73,
+    "raw": "Oh, never mind, found it.",
+    "rules": {
+      "verbatim": "Oh, never mind, found it.",
+      "light": "Oh, never mind, found it.",
+      "medium": "Oh, never mind, found it."
+    },
+    "model": {
+      "light": "Oh, never mind, found it.",
+      "medium": "Oh, never mind, found it."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 74,
+    "raw": "Never mind, I'll do it myself.",
+    "rules": {
+      "verbatim": "Never mind, I'll do it myself.",
+      "light": "Never mind, I'll do it myself.",
+      "medium": "Never mind, I'll do it myself."
+    },
+    "model": {
+      "light": "Never mind, I'll do it myself.",
+      "medium": "Never mind, I'll do it myself."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 75,
+    "raw": "The notice period is 30 days",
+    "rules": {
+      "verbatim": "The notice period is 30 days",
+      "light": "The notice period is 30 days",
+      "medium": "The notice period is 30 days"
+    },
+    "model": {
+      "light": "The notice period is 30 days.",
+      "medium": "The notice period is 30 days."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 76,
+    "raw": "The grace period is 30 days",
+    "rules": {
+      "verbatim": "The grace period is 30 days",
+      "light": "The grace period is 30 days",
+      "medium": "The grace period is 30 days"
+    },
+    "model": {
+      "light": "The grace period is 30 days.",
+      "medium": "The grace period is 30 days."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 77,
+    "raw": "The billing period is 30 days",
+    "rules": {
+      "verbatim": "The billing period is 30 days",
+      "light": "The billing period is 30 days",
+      "medium": "The billing period is 30 days"
+    },
+    "model": {
+      "light": "The billing period is 30 days.",
+      "medium": "The billing period is 30 days."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 78,
+    "raw": "The time period is 30 days",
+    "rules": {
+      "verbatim": "The time period is 30 days",
+      "light": "The time period is 30 days",
+      "medium": "The time period is 30 days"
+    },
+    "model": {
+      "light": "The time period is 30 days.",
+      "medium": "The time period is 30 days."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 79,
+    "raw": "the Victorian period",
+    "rules": {
+      "verbatim": "the Victorian period",
+      "light": "the Victorian period",
+      "medium": "the Victorian period"
+    },
+    "model": {
+      "light": "The Victorian period.",
+      "medium": "The Victorian period."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 80,
+    "raw": "We use the Oxford comma",
+    "rules": {
+      "verbatim": "We use the Oxford comma",
+      "light": "We use the Oxford comma",
+      "medium": "We use the Oxford comma"
+    },
+    "model": {
+      "light": "We use the Oxford comma.",
+      "medium": "We use the Oxford comma."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 81,
+    "raw": "use comma separated values",
+    "rules": {
+      "verbatim": "use comma separated values",
+      "light": "use comma separated values",
+      "medium": "use comma separated values"
+    },
+    "model": {
+      "light": "Use comma separated values.",
+      "medium": "Use comma separated values."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 82,
+    "raw": "a big question mark",
+    "rules": {
+      "verbatim": "a big question mark",
+      "light": "a big question mark",
+      "medium": "a big question mark"
+    },
+    "model": {
+      "light": "A big question mark.",
+      "medium": "A big question mark."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 83,
+    "raw": "make a quick dash to the store",
+    "rules": {
+      "verbatim": "make a quick dash to the store",
+      "light": "make a quick dash to the store",
+      "medium": "make a quick dash to the store"
+    },
+    "model": {
+      "light": "Make a quick dash to the store.",
+      "medium": "Make a quick dash to the store."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 84,
+    "raw": "That's it. Period.",
+    "rules": {
+      "verbatim": "That's it. Period.",
+      "light": "That's it. Period.",
+      "medium": "That's it. Period."
+    },
+    "model": {
+      "light": "That's it. Period.",
+      "medium": "That's it. Period."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 85,
+    "raw": "5 - 3",
+    "rules": {
+      "verbatim": "5 - 3",
+      "light": "5 - 3",
+      "medium": "5 - 3"
+    },
+    "model": {
+      "light": "5 - 3.",
+      "medium": "5 - 3."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 86,
+    "raw": "e.g. the",
+    "rules": {
+      "verbatim": "e.g. the",
+      "light": "e.g. the",
+      "medium": "e.g. the"
+    },
+    "model": {
+      "light": "E.g. the.",
+      "medium": "E.g. the."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 87,
+    "raw": "What it is is a scam",
+    "rules": {
+      "verbatim": "What it is is a scam",
+      "light": "What it is is a scam",
+      "medium": "What it is is a scam"
+    },
+    "model": {
+      "light": "What it is is a scam.",
+      "medium": "What it is is a scam."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 88,
+    "raw": "Will will be there",
+    "rules": {
+      "verbatim": "Will will be there",
+      "light": "Will will be there",
+      "medium": "Will will be there"
+    },
+    "model": {
+      "light": "Will will be there.",
+      "medium": "Will will be there."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 89,
+    "raw": "the food was so so",
+    "rules": {
+      "verbatim": "the food was so so",
+      "light": "the food was so so",
+      "medium": "the food was so so"
+    },
+    "model": {
+      "light": "The food was so so.",
+      "medium": "The food was so so."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 90,
+    "raw": "check in in five minutes",
+    "rules": {
+      "verbatim": "check in in five minutes",
+      "light": "check in in five minutes",
+      "medium": "check in in five minutes"
+    },
+    "model": {
+      "light": "Check in in five minutes.",
+      "medium": "Check in in five minutes."
+    },
+    "deterministic": true
+  },
+  {
+    "id": 91,
+    "raw": "turn it on on Monday",
+    "rules": {
+      "verbatim": "turn it on on Monday",
+      "light": "turn it on on Monday",
+      "medium": "turn it on on Monday"
+    },
+    "model": {
+      "light": "Turn it on on Monday.",
+      "medium": "Turn it on on Monday."
+    },
+    "deterministic": true
+  }
+]

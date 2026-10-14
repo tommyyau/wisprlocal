@@ -146,12 +146,12 @@ extension RemoteSecureInputTests {
                                     focus: { FocusToken(pid: env.front?.pid, windowTitle: title) },
                                     fallbackFor: { _, _ in typing })
         let pipeline = DictationPipeline(audio: env.audio, trimmer: FakeTrimmer(), transcriber: env.transcriber,
-                                         dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                         dictionary: tempDictionary(), cleaner: nil,
                                          gate: ConflictDetector(runningApps: { env.apps }, fnUsageReader: { 0 }),
                                          secureInput: env.secure, clipboard: env.clipboard,
                                          inserterFor: { _ in (remote, .remote) }, history: env.history,
                                          frontmostApp: { env.front }, caretReader: env.caret,
-                                         debugRecordings: nil, autoFormatter: .none)
+                                         debugRecordings: nil)
         pipeline.onNotice = { env.notices.append($0) }
         await pipeline.prepareModels()
         let entry = await pipeline.process(samples: env.audio.samples, target: env.front)

@@ -108,26 +108,24 @@ import Testing
         #expect(RuleCleaner().cleanSync("Um, ask Sol six point one, uh, to run it.") == "Ask Sol 6.1 to run it.")
     }
 
-    /// Rule 6: the FM output keeping "6.1" / "50%" / "v2" passes the guard; altering them rejects.
-    @Test func guardKeepsDecimalsAttached() {
-        let raw = "ask Sol six point one to run version two point three at fifty percent"
-        #expect(OutputGuard.check(raw: raw, output: "Ask Sol 6.1 to run version 2.3 at 50%.").isOK)
-        #expect(!OutputGuard.check(raw: raw, output: "Ask Sol 6 to run version 2.3 at 50%.").isOK)
-        #expect(!OutputGuard.check(raw: raw, output: "Ask Sol 6.1 to run version 2.3 at 50 percent.").isOK)
-        #expect(!OutputGuard.check(raw: raw, output: "Ask Sol six point one to run version 2.3 at 50%.").isOK)
-        #expect(OutputGuard.tokens("Sol 6.1 at -0.5 and 50%").map(\.surface) == ["Sol", "6.1", "at", "-0.5", "and", "50%"])
-        #expect(OutputGuard.check(raw: "the v two api is live", output: "The v2 API is live.", vocabulary: ["API"]).isOK)
+    @Test func projectionKeepsDecimalsAttached() {
+        let raw = RuleCleaner().cleanSync("ask Sol six point one to run version two point three at fifty percent")
+        for candidate in ["Ask Sol 6.1 to run version 2.3 at 50%.", "Ask Sol 6 to run version 2.3 at 50%.", "Ask Sol 6.1 to run version 2.3 at 50 percent.", "Ask Sol six point one to run version 2.3 at 50%."] {
+            #expect(projectionKeys(raw, candidate) == PlanTokens(raw).keys)
+        }
+        #expect(PlanTokens("Sol 6.1 at -0.5 and 50%").surfaces == ["Sol", "6.1", "at", "-0.5", "and", "50%"])
     }
+
 }
 
-/// AI formatting OFF (default): the pipeline's RuleCleaner path receives the user's dictionary
+/// Rules-only cleanup: the pipeline's RuleCleaner path receives the user's dictionary
 /// terms, so a number after a user term becomes digits end to end.
 @MainActor @Suite struct RulesPathDictionaryNumberTests {
     @Test func dictionaryTermVersionThroughPipeline() async throws {
         let store = tempDictionary()
         try store.update(UserDictionary(vocabulary: ["Zephyr"]))
         let (e, p) = await makeEnv(text: "We should try Zephyr two with the team", dictionary: store)
-        #expect(!p.userFormattingEnabled)
+        #expect(p.cleaner == nil)
         p.handle(.startRecording)
         p.handle(.commitRecording)
         await p.drain()

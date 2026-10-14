@@ -1,6 +1,6 @@
 import Foundation
 
-/// Opt-in backtrack ("Coffee at 2, actually 3" → "Coffee at 3"). OFF by default.
+/// Same-type backtrack ("Coffee at 2, actually 3" → "Coffee at 3"). ON by default for Light/Medium.
 ///
 /// Deterministic and deliberately narrow. A correction is applied ONLY when all hold:
 /// - a cue — "actually", "no", "sorry", "I mean", "make that", "or rather" — sits DIRECTLY between
@@ -20,7 +20,7 @@ public enum Backtrack {
         public var applied: Bool
     }
 
-    static let cues = ["actually", "no", "sorry", "i mean", "make that", "or rather"]
+    static let cues = ["sorry i meant", "no wait", "wait no", "i meant", "actually", "no", "sorry", "i mean", "make that", "or rather"]
 
     static let numberWords: Set<String> = [
         "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
@@ -43,7 +43,7 @@ public enum Backtrack {
     private static let suffix = "(?:[ ](?:o'clock|o’clock|fifteen|thirty|forty[- ]five|am|pm|a\\.m\\.|p\\.m\\.))?"
     private static let value = "(" + token + suffix + ")"
     private static let pattern: NSRegularExpression = {
-        let cue = "(actually|no|sorry|i mean|make that|or rather)"
+        let cue = "(sorry i meant|no wait|wait no|i meant|actually|no|sorry|i mean|make that|or rather)"
         let sep = "(?:[ ]*,[ ]*|[ ]+)"
         // Never start inside "1,000" (after "digit,") nor end before ",000" / ".5".
         return try! NSRegularExpression(pattern: "(?<![\\p{L}\\p{N}'’$£€.:-])(?<!\\d,)" + value + sep + cue + sep + value
@@ -65,7 +65,9 @@ public enum Backtrack {
             let v1 = ns.substring(with: m.range(at: 1)), v2 = ns.substring(with: m.range(at: 3))
             let before = ns.substring(to: m.range.location)
             let after = ns.substring(from: m.range.location + m.range.length)
-            if accepts(v1: v1, v2: v2, before: before, after: after) {
+            let cue = ns.substring(with: m.range(at: 2)).lowercased()
+            let atClauseBoundary = ns.substring(to: m.range(at: 2).location).trimmingCharacters(in: .whitespaces).hasSuffix(",")
+            if (!["i meant", "make that"].contains(cue) || atClauseBoundary), accepts(v1: v1, v2: v2, before: before, after: after) {
                 var replacement = v2
                 if atSentenceStart(before), let f = replacement.first, f.isLowercase {
                     replacement = f.uppercased() + replacement.dropFirst()

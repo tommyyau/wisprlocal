@@ -44,8 +44,6 @@ final class AppController {
 
     /// Apple Intelligence model state (Settings + onboarding); refreshed by `refreshStatus()`.
     private(set) var cleanupAvailability: CleanupModelAvailability = .other("checking")
-    /// Live max FM timeout (Settings), read per cleanup call.
-    @ObservationIgnored let cleanupMaxTimeout: LiveValue<Double>
 
     /// Model pre-warm start (non-nil while preparing) — onboarding/HUD show elapsed time.
     private(set) var prewarmStartedAt: Date?
@@ -68,7 +66,6 @@ final class AppController {
     private(set) var activeVariant: ASRModelVariant
 
     private init() {
-        cleanupMaxTimeout = LiveValue(settings.aiCleanupMaxTimeout)
         dictionary = DictionaryStore(url: settings.dictionaryURL)
         smart = SmartDictionaryController(dictionary: dictionary)
         recorder = AudioRecorder(voiceProcessingEnabled: settings.voiceProcessingEnabled,
@@ -89,14 +86,14 @@ final class AppController {
             trimmer: SileroSpeechTrimmer(),
             transcriber: engine,
             dictionary: dictionary,
-            cleaner: Self.makeCleaner(enabled: settings.aiCleanupEnabled, maxTimeout: cleanupMaxTimeout, dictionary: dictionary),
+            cleaner: FoundationModelsCleaner(vocabulary: { [dictionary] in dictionary.dictionary.vocabulary }),
             gate: conflicts,
             inserterFor: { bundleID in
                 (inserter.inserter(forBundleID: bundleID), inserter.router.strategy(forBundleID: bundleID))
             },
             history: library.index,
             frontmostApp: { FrontmostApp.current() },
-            caretReader: AXCaretContextReader(policy: smart.contextProvider.readPolicy),
+            caretReader: AXCaretContextReader(policy: smart.contextProvider.readPolicy, maxChars: 64),
             debugRecordings: recordings)
         self.pipeline = pipeline
         smart.install(on: pipeline)
@@ -105,6 +102,13 @@ final class AppController {
         let styles = self.styles
         pipeline.styleFor = { styles.configuration.style(forBundleID: $0) }
         pipeline.backtrackEnabled = { styles.backtrackEnabled }
+        pipeline.useOnDeviceAI = { styles.useOnDeviceAI }
+        pipeline.cleanupContextReader = AXCaretContextReader(policy: smart.contextProvider.readPolicy, maxChars: 300)
+        pipeline.cleanupLevel = { styles.cleanupLevel }
+        pipeline.spokenPunctuationEnabled = { styles.spokenPunctuationEnabled }
+        pipeline.cleanupContextAllowed = { [policy = smart.contextProvider.readPolicy] target in
+            !policy.isExcluded(bundleID: target.bundleID, pid: target.pid)
+        }
         let dictating: @MainActor () -> Bool = {
             switch pipeline.status {
             case .recording, .processing: return true
@@ -192,13 +196,6 @@ final class AppController {
             prewarmStartedAt = nil
             hud.update()
         }
-    }
-
-    static func makeCleaner(enabled: Bool, maxTimeout: LiveValue<Double>, dictionary: DictionaryStore) -> TextCleaner {
-        guard enabled else { return RuleCleaner() }
-        return FoundationModelsCleaner(
-            timeout: { words in FoundationModelsCleaner.adaptiveTimeout(words: words, maxSeconds: maxTimeout.value) },
-            vocabulary: { dictionary.dictionary.vocabulary })
     }
 
     /// Re-read Apple Intelligence availability (cheap).
@@ -454,18 +451,6 @@ final class AppController {
         pipeline.history = library.index
         observeHistoryIndex()
         historyRevision &+= 1
-    }
-
-    func setAICleanup(enabled: Bool? = nil, maxTimeout: Double? = nil) {
-        if let maxTimeout {
-            // Live: the next cleanup call reads it (no cleaner rebuild needed).
-            settings.aiCleanupMaxTimeout = min(10, max(2, maxTimeout))
-            cleanupMaxTimeout.set(settings.aiCleanupMaxTimeout)
-        }
-        if let enabled {
-            settings.aiCleanupEnabled = enabled
-            pipeline.cleaner = Self.makeCleaner(enabled: enabled, maxTimeout: cleanupMaxTimeout, dictionary: dictionary)
-        }
     }
 
     var activeVariantLabel: String { activeVariant.modeLabel }

@@ -28,3 +28,23 @@ SwiftPM copies this directory only into the test resource bundle.
 from the packaged WisprLocal app. Historical spike results describe their
 original, local Apple-voice benchmark recordings; this replacement does not
 change or reproduce those measurements.
+
+## Local smart cleanup corpus
+
+`local-smart-cleanup.json` contains 91 repository-authored examples with separate
+`rules` expectations per level and `model` expectations for Light/Medium. `rules` describes the
+conservative deterministic layer; `model` describes careful human editing,
+including sentence case and terminal punctuation. The always-on corpus test
+checks all 70 deterministic cases at each level (210 comparisons). The 21
+model-targeted cases cover contextual fillers, false starts, clause corrections,
+lists and mixtures. Reviewer adversarial inputs are included. These are synthetic
+dictations, with no recordings or personal data.
+
+Run the production on-device cleaner benchmark with
+`WISPRLOCAL_SMART_CLEANUP_BENCH=1 swift test --disable-sandbox --filter SmartCleanupCorpusTests`.
+It scores the FINAL delivered text (including validation fallback) against `model`,
+with exact and case/terminal-punctuation-insensitive scores over the whole corpus.
+Plan acceptance and structural rejection reasons, errors, timeouts and p50/p95
+model-call latency are secondary metrics. Verbatim never calls the model and has
+no model expectations. The production 2 s cap applies. Real-model numbers are
+pending re-measurement outside the managed sandbox.

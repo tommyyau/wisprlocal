@@ -35,7 +35,7 @@ enum S3Corpus {
     static let available = SystemCleanupModel.currentAvailability.isAvailable
     static let bench = AppEnvironment.flag("FM_BENCH")
 
-    @Test(.enabled(if: available, "Apple Intelligence model not available"))
+    @Test(.enabled(if: available && bench, "Apple Intelligence model not available"))
     func realModelCleansAndNeverAnswers() async {
         let c = FoundationModelsCleaner(timeout: { _ in .seconds(10) }, vocabulary: { S3Corpus.vocabulary })
         c.prepareForDictation()
@@ -53,53 +53,20 @@ enum S3Corpus {
     }
 
     /// Opt-in: `WISPRLOCAL_FM_BENCH=1 swift test --filter FMIntegrationTests`.
-    /// Prints per-sample FM output, guard verdict and latency; cold = first call in the process
-    /// (fresh session, no prewarm); warm = prewarmed fresh session per call, 3 passes.
+    /// Prints final delivered text and plan verdict; production timeout/fallback apply.
     @Test(.enabled(if: available && bench, "set WISPRLOCAL_FM_BENCH=1 (and model available)"))
     func corpusBenchmark() async {
-        let model = SystemCleanupModel()
-        let rules = RuleCleaner()
-        let g = OutputGuard()
-        let ins = FoundationModelsCleaner.instructions()
-        func ms(_ d: Duration) -> Double { durationMs(d) }
-        let clock = ContinuousClock()
-
-        // Cold: first ever call, no prewarm.
-        let coldSession = model.makeSession(instructions: ins)
-        var t0 = clock.now
-        _ = try? await coldSession.respond(to: FoundationModelsCleaner.prompt(for: S3Corpus.samples[0].raw))
-        let cold = ms(clock.now - t0)
-
-        var warm: [Double] = []
-        var unprewarmed: [Double] = []
-        var rows: [(Int, String, String, String, Double)] = []
-        for pass in 0..<3 {
-            for s in S3Corpus.samples {
-                let session = model.makeSession(instructions: ins)
-                if pass < 2 { session.prewarm(); try? await Task.sleep(for: .milliseconds(400)) }  // ≈ user still speaking
-                t0 = clock.now
-                var out = "", verdict = ""
-                do {
-                    out = FoundationModelsCleaner.postprocess(try await session.respond(to: FoundationModelsCleaner.prompt(for: s.raw)))
-                    verdict = g.check(raw: s.raw, output: out, vocabulary: S3Corpus.vocabulary).summary
-                } catch { verdict = "error:\(error)" }
-                let d = ms(clock.now - t0)
-                if pass < 2 { warm.append(d) } else { unprewarmed.append(d) }
-                if pass == 0 { rows.append((s.id, out, verdict, rules.cleanSync(s.raw), d)) }
-            }
+        let cleaner = FoundationModelsCleaner(vocabulary: { S3Corpus.vocabulary })
+        var times: [Double] = [], accepted = 0
+        for sample in S3Corpus.samples {
+            cleaner.prepareForDictation(level: .light)
+            let result = await cleaner.cleanDetailed(sample.raw, level: .light)
+            if let ms = result.modelMs { times.append(ms) }
+            if result.verdict == "llm-projected" { accepted += 1 }
+            print("FMBENCH #\(sample.id) [\(result.verdict ?? "rules")] final=\(result.text)")
         }
-        func pct(_ a: [Double], _ p: Double) -> Double { let s = a.sorted(); return s.isEmpty ? 0 : s[min(s.count - 1, Int(Double(s.count - 1) * p + 0.5))] }
-        print(String(format: "FMBENCH cold-first-call %.0f ms | warm(prewarmed) p50 %.0f p95 %.0f max %.0f (n=%d) | no-prewarm p50 %.0f p95 %.0f (n=%d) | >2000ms: %d",
-                     cold, pct(warm, 0.5), pct(warm, 0.95), warm.max() ?? 0, warm.count,
-                     pct(unprewarmed, 0.5), pct(unprewarmed, 0.95), unprewarmed.count,
-                     (warm + unprewarmed).filter { $0 > 2000 }.count))
-        let rejected = rows.filter { !$0.2.hasPrefix("ok") }.count
-        print("FMBENCH guard rejected \(rejected)/\(rows.count)")
-        for r in rows {
-            print("FMBENCH #\(r.0) \(Int(r.4))ms [\(r.2)]")
-            print("FMBENCH   FM:   \(r.1.replacingOccurrences(of: "\n", with: "⏎"))")
-            print("FMBENCH   RULE: \(r.3)")
-        }
+        let sorted = times.sorted()
+        print("FMBENCH plans accepted=\(accepted)/\(S3Corpus.samples.count) p50=\(sorted.isEmpty ? 0 : sorted[sorted.count / 2])ms")
     }
 
     static let realistic: [String] = [

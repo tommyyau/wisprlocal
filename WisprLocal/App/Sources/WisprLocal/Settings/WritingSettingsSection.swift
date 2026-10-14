@@ -3,9 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import WisprLocalCore
 
-/// Settings › Writing: how the words are written. AI formatting, the per-app styles (a style
-/// per kind of app with a live example, plus per-app overrides) and the opt-in "Fix quick
-/// corrections" (backtrack). In pipeline order: cleanup, then backtrack, then the style.
+/// Settings › Writing: cleanup level, spoken punctuation, corrections, styles and learning.
 struct WritingSettingsSection: View {
     let model: AppModel
     @Bindable var store: StyleSettingsStore
@@ -20,26 +18,29 @@ struct WritingSettingsSection: View {
     static let exampleSpoken = "see you at 3"
 
     var body: some View {
-        let s = model.settings
         let avail = model.cleanupAvailability
         let config = store.configuration
         SettingsGroup(section: .writing,
-                      footer: "Always on: fillers go, spacing and capitals fixed, instantly. English only.") {
-            SettingRow(title: "AI formatting",
-                       why: "Apple Intelligence: punctuation (up to 1.5 s); spoken lists use it even when off.",
-                       info: .aiFormatting) {
-                Toggle("", isOn: Binding(get: { s.aiCleanupEnabled }, set: { model.setAIFormatting($0) }))
-                    .toggleStyle(BrandSwitchStyle()).labelsHidden()
+                      footer: "Cleanup is English only. Say “new line” on its own to start a line. Your dictionary and styles apply at every level.") {
+            SettingRow(title: "Cleanup level", why: "Keep your words, remove false starts, or add missing articles.") {
+                ChoiceMenu(selection: store.cleanupLevel, options: CleanupLevel.allCases,
+                           title: \.title, label: "Cleanup level", width: 140) { store.cleanupLevel = $0 }
             }
-            if s.aiCleanupEnabled {
-                SettingRow(title: "Apple Intelligence", why: avail.isAvailable ? "Ready, and running on-device." : avail.label) {
+            if store.cleanupLevel != .verbatim {
+                SettingRow(title: "Spoken punctuation", why: "Say “comma” or “question mark” to add punctuation; say “literal” to keep the word.") {
+                    Toggle("", isOn: $store.spokenPunctuationEnabled).toggleStyle(BrandSwitchStyle()).labelsHidden()
+                }
+                SettingRow(title: "Use on-device AI", why: "Apply Apple Intelligence after the rules on this Mac.") {
+                    Toggle("", isOn: $store.useOnDeviceAI).toggleStyle(BrandSwitchStyle()).labelsHidden()
+                }
+                SettingRow(title: "Apple Intelligence", why: avail.isAvailable ? "Smooths your dictation on this Mac. Adds up to 2 s." : avail.label) {
                     StatusLabel(ok: avail.isAvailable, text: avail.isAvailable ? "Ready" : "Unavailable")
                 }
-            }
-            SettingRow(title: "Fix “actually” corrections",
-                       why: "“At 2, actually 3” becomes “At 3”. Undo from the pill.",
-                       info: .backtrack) {
-                Toggle("", isOn: $store.backtrackEnabled).toggleStyle(BrandSwitchStyle()).labelsHidden()
+                SettingRow(title: "Fix “actually” corrections",
+                           why: "“At 2, actually 3” becomes “At 3”. Undo from the pill.",
+                           info: .backtrack) {
+                    Toggle("", isOn: $store.backtrackEnabled).toggleStyle(BrandSwitchStyle()).labelsHidden()
+                }
             }
             SettingRow(title: "Per-app styles", why: "Formal for email and docs, Casual for chat, Code for editors.", divider: config.enabled, info: .styles) {
                 Toggle("", isOn: Binding(get: { store.configuration.enabled }, set: { store.configuration.enabled = $0 }))

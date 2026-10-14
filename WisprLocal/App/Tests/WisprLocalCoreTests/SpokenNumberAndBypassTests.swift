@@ -70,20 +70,17 @@ import Testing
 
     @Test func bypassesReject() {
         for (id, raw, out) in Self.rejects {
-            #expect(!OutputGuard.check(raw: raw, output: out).isOK, "\(id) should reject")
+            #expect(projectionKeys(RuleCleaner().cleanSync(raw), out) == PlanTokens(RuleCleaner().cleanSync(raw)).keys, "\(id): \(projectionKeys(RuleCleaner().cleanSync(raw), out))")
         }
         #expect(Self.rejects.count >= 18)
     }
 
-    /// Round 3: corrections are no longer applied by anyone → A01–A04 (correction forms) now reject;
-    /// the RuleCleaner text (corrections left verbatim) is inserted instead.
-    static let nowRejected: Set<String> = ["A01", "A02", "A03", "A04"]
-
-    @Test func correctedFormsAccept() {
+    @Test func correctedFormsPreserveRuleFloor() {
         for (id, raw, out) in Self.accepts {
-            let v = OutputGuard.check(raw: raw, output: out)
-            if Self.nowRejected.contains(String(id.prefix(3))) { #expect(!v.isOK, "\(id) now rejected by design"); continue }
-            #expect(v.isOK, "\(id) should accept, got \(v.summary)")
+            let floor = RuleCleaner().cleanSync(raw)
+            let expected = id.hasPrefix("A01") || id.hasPrefix("A02") ? ["transfer", "500", "dollars", "to", "bob"] : PlanTokens(floor).keys
+            #expect(projectionKeys(floor, out) == expected, "\(id): \(projectionKeys(floor, out)) vs \(PlanTokens(floor).keys)")
         }
     }
+
 }

@@ -486,12 +486,12 @@ final class TrimSpy: SpeechTrimmer, @unchecked Sendable {
         let trim = TrimSpy()
         let inserter = FakeInserter()
         let p = DictationPipeline(audio: audio, trimmer: trim, transcriber: FakeTranscriber(text: "Hello there."),
-                                  dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                  dictionary: tempDictionary(), cleaner: nil,
                                   gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                                   secureInput: FakeSecureInput(), clipboard: FakeClipboard(),
                                   inserterFor: { _ in (inserter, .paste) }, history: MemoryHistory(),
                                   frontmostApp: { FrontmostApp(pid: 42, bundleID: "com.apple.TextEdit") },
-                                  caretReader: FakeCaretReader(), debugRecordings: nil, autoFormatter: .none)
+                                  caretReader: FakeCaretReader(), debugRecordings: nil)
         p.captureTail = .zero
         p.pipelineClock = clock
         await clock.advance(by: .seconds(1))  // room for a pre-roll before the first press
@@ -660,12 +660,12 @@ final class TrimSpy: SpeechTrimmer, @unchecked Sendable {
         let env = PipelineEnv(text: "Hi.", speech: true, transcriber: nil)
         let inserter = env.inserter
         let p = DictationPipeline(audio: env.audio, trimmer: FakeTrimmer(), transcriber: env.transcriber,
-                                  dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                  dictionary: tempDictionary(), cleaner: nil,
                                   gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                                   secureInput: env.secure, clipboard: env.clipboard,
                                   inserterFor: { _ in (inserter, .remote) }, history: env.history,
                                   frontmostApp: { FrontmostApp(pid: 42, bundleID: "com.apple.ScreenSharing") },
-                                  caretReader: env.caret, debugRecordings: nil, autoFormatter: .none)
+                                  caretReader: env.caret, debugRecordings: nil)
         p.captureTail = .zero
         await p.prepareModels()
         let spy = ReturnSpy(inserter: inserter)

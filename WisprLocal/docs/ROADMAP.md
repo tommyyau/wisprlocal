@@ -26,7 +26,7 @@ Items the v1.0 release review scheduled for after release. IDs refer to that rev
 - [ ] **PERF-4** Delete the unread `pipeline.level` / `lastEntry` and the per-buffer main-actor Tasks (parity 100 %).
 - [ ] **PERF-5** Incremental history append from `onEntry` and tail-read for `readRecent`.
 - [x] **PERF-5 (stats)** Cached incremental stats in `InsightsCalculator`.
-- [ ] **PERF-6** `OutputGuard.check(preCleanedRaw:)` so the RuleCleaner pre-pass runs once.
+- [x] **PERF-6** Phase A computes the deterministic rule floor once and supplies it to FoundationModelsCleaner; free-text FM uses LCS projection and per-span validation. OutputGuard is retired (2 s model budget).
 - [ ] **PERF-7** Per-10 ms RMS ring for the adaptive-tail threshold instead of a key-up scan of the whole buffer.
 - [ ] **PERF-1** Overlap ASR with the capture tail (measure first; Parakeet is non-streaming).
 - [ ] **PERF-2** (= CC-5) and **PERF-3** whitelist-only pasteboard snapshot.
@@ -49,7 +49,8 @@ Items the v1.0 release review scheduled for after release. IDs refer to that rev
 - [ ] **SEC-16** `security import -x`, passphrase via env/file, key-theft note, SHA-1 identity pin for releases.
 - [ ] **SEC-21** Neutral fixture names for the public repo (optional).
 - [ ] **SEC-22** `WAV.decode` guard for a short `fmt ` chunk.
-- [ ] OutputGuard residual (review §1, LOW): reject ASCII symbols absent from raw outside a punctuation whitelist; terminals only at the end when raw has none; `clean(clean(x)) == clean(x)` property test.
+- [x] Cleanup projection preserves input symbols and terminators and never upgrades input commas to terminators; replacement words come from input tokens, not model prose. Historical OutputGuard residual items are superseded.
+- [ ] Evaluate cleanup idempotence (`clean(clean(x)) == clean(x)`) under the current rule/projection design.
 
 ### Architecture
 - [ ] **ARCH-1** Split `WisprLocalCore` into `WisprLocalKit` (pure) and `WisprLocalSystem` (AppKit/CoreGraphics/AVFoundation/Network adapters).
@@ -88,3 +89,10 @@ Items the v1.0 release review scheduled for after release. IDs refer to that rev
 
 - [ ] Per-window and per-field insertion targeting within the same app.
 - [ ] Automatic paste retry can in rare cases double-paste in slow apps.
+
+## Local smart cleanup follow-ups
+
+- [ ] **Phase B:** FluidAudio CTC vocabulary boosting for names and domain terms.
+- [ ] **Phase C:** Local voice command mode.
+- [ ] Evaluate a larger local model via MLX if Apple Foundation Models quality plateaus.
+- [ ] Improve spoken “period” mid-sentence after -ing/-al: distinguish intended punctuation from literal compounds, preserving current conservative behavior until validated.

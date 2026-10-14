@@ -67,7 +67,7 @@ In October 2026 the project was rebuilt as WisprLocal, a native Swift menu-bar a
 - **Voice commands**: "scratch that" removes everything you said before it in the current dictation; "new line" and "new paragraph".
 - **Snippets**: say a trigger such as "my calendar link" and the full text is typed.
 - **Per-app styles**: Formal in email and documents, Casual in chats and AI tools (no full stop on a one-line message), Code in editors and terminals (no auto-capital). Only the first capital and the final full stop change, never your words. Pick a style per kind of app or per app in Settings › Writing; on by default.
-- **Fix “actually” corrections** (opt-in): "coffee at 2, actually 3" becomes "coffee at 3". Only a time, number, day, month or name restated straight after "actually", "no", "sorry", "I mean", "make that" or "or rather"; anything else is typed as said. The pill shows **Corrected · Undo** for 8 seconds.
+- **Fix “actually” corrections** (on by default for Light/Medium): "coffee at 2, actually 3" becomes "coffee at 3". Only a time, number, day, month or name restated straight after "actually", "no", "sorry", "I mean", "make that" or "or rather"; anything else is typed as said. The pill shows **Corrected · Undo** for 8 seconds.
 - **Personal dictionary**: fix names and jargon the model mishears (ships with "Wispr Flow" and "Tailscale" fixes). Dictionary words also pull close-sounding words that aren't English words to their spelling ("kuber netties" becomes "Kubernetes"; "cloud" never becomes "Claude").
 - **Learns from your corrections**: retype something WisprLocal misheard and the indicator asks "Always write “kuber netties” as “Kubernetes”?"; **Add** puts the word in your dictionary and adds that rewrite (or it adds both automatically, or never; Settings › Writing). Ordinary English words, weekdays and numbers are never learned. Words you delete are never suggested again unless you add them back yourself. In apps that hide their text, use **Fix a Word…** in History.
 - **Names from the text around your cursor** (opt-in, off by default): spells "Shaun" right when Shaun is in the email thread, and `getUserById` when it's in your editor. Read at the start of a dictation, kept in memory for that dictation only, subject to macOS secure input, your editable Never read list and banking-app category exclusions (which do not recognise every banking website).
@@ -81,7 +81,7 @@ In October 2026 the project was rebuilt as WisprLocal, a native Swift menu-bar a
 
 ### AI formatting with Apple Intelligence
 
-Every dictation gets quick rule-based cleanup: filler words like "um" go, spacing is fixed, sentences are capitalised, and "scratch that" works. On top of that you can switch on **AI formatting** in Settings › Writing. It uses Apple's on-device Foundation Models to tidy punctuation and turn spoken lists into bullets, with no network access.
+Choose **Verbatim**, **Light** (default) or **Medium** in Settings › Writing. Verbatim keeps the existing hesitation, scratch-that and comma-delimited filler rules; Light also handles stutters, spoken punctuation and corrections before Apple’s on-device Foundation Models removes false starts and formats lists. Medium can also insert articles. The app validates every edit plan before applying it to the original words, with a 2 s cap and deterministic fallback. Turn **Use on-device AI** off to keep Light or Medium rules-only. Cleanup has no network access.
 
 - It is off by default, and it adds up to about 1.5 s per dictation. Even when it is off, list cues such as "first... second..." or "bullet point" request AI list formatting when Apple Intelligence is available and the word-for-word guard accepts the result; otherwise cleanup uses rules only.
 - It needs Apple Intelligence turned on in System Settings, and macOS must have finished downloading its model. Settings › Writing shows whether it is ready when AI formatting is on. Until then WisprLocal uses the built-in rules.
@@ -310,11 +310,11 @@ English (Parakeet v2) only speaks English, so switching back avoids language swi
 
 ### What does cleanup do, and why does History say “rules”?
 
-Every dictation gets quick rule-based cleanup: filler words like “um” go, “scratch that” removes everything you said before it in the current dictation, spacing is fixed and sentences are capitalised. That's what “rules” means in History.
+Every level removes hesitations like “um” and handles spoken numbers and new lines. Light and Medium also remove safe stutters, handle spoken punctuation and resolve quick corrections; a standalone “scratch that” discards the preceding dictation. That's what “rules” means in History.
 
-AI formatting (off by default) adds Apple Intelligence for punctuation (up to 1.5 s). Spoken list cues use it even when AI formatting is off. A guard checks every AI result; if the model changed your words, your own words are typed and History still says “rules”.
+Light cleanup is the default. Apple Intelligence removes fillers and false starts on this Mac, with a 2 s limit. The app validates an edit plan and applies it to your original words. Medium can also insert articles. Verbatim skips the model. Turn “Use on-device AI” off for rules-only Light or Medium. If the model cannot safely clean your text, History says “rules”.
 
-Two final touches are rule-based too. Styles (Settings › Writing, on by default) only change the first capital and the final full stop to suit the app, so a chat gets no full stop and an email gets one. Fix “actually” corrections (off by default) types just the value you restated: “at 2, actually 3” becomes “at 3”, with Undo on the pill for 8 seconds, or “Corrected · can't undo here” with Copy original when undo is unavailable.
+Styles and quick corrections are rule-based too. Styles (Settings › Writing, on by default) only change the first capital and the final full stop to suit the app, so a chat gets no full stop and an email gets one. Fix “actually” corrections (on by default for Light/Medium) types just the value you restated: “at 2, actually 3” becomes “at 3”, with Undo on the pill for 8 seconds, or “Corrected · can't undo here” with Copy original when undo is unavailable.
 
 When text is confidently recognised as another language and has at least three words, it is typed as heard, with dictionary replacements. Short or uncertain text gets English cleanup.
 

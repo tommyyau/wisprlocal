@@ -375,7 +375,6 @@ final class AppModel {
     }
 
     func setVoiceProcessing(_ on: Bool) { if let live { live.setVoiceProcessing(on) } else { settings.voiceProcessingEnabled = on } }
-    func setAIFormatting(_ on: Bool) { if let live { live.setAICleanup(enabled: on) } else { settings.aiCleanupEnabled = on } }
     /// "Noisy room / other languages (Parakeet Ultra)" (OFF = "English (Parakeet v2)").
     var noisyRoom: Bool { settings.noisyRoomMode }
     func setNoisyRoom(_ on: Bool) { if let live { live.setNoisyRoom(on) } else { settings.noisyRoomMode = on } }

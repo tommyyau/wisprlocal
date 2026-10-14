@@ -67,15 +67,6 @@ public enum PipelineNotice {
     public static func recordingStopsIn(_ seconds: Int) -> String { "\(recordingLimitPrefix)\(seconds) s" }
 }
 
-/// Which FM formatter the pipeline uses in AUTO mode (setting OFF + list cues).
-public enum AutoFormatterChoice {
-    /// No auto formatting (rules only while the setting is OFF).
-    case none
-    /// Apple Foundation Models (`FoundationModelsCleaner`, dictionary vocabulary for the guard).
-    case system
-    case custom(TextCleaner)
-}
-
 /// Orchestrates: hotkey action → record → stop (+tail) → `process`, whose post-processing order is
 /// FIXED (DESIGN.md › "Dictation pipeline order"; `PipelineOrderTests` pins it):
 ///  1. VAD trim                       2. ASR (timeout, one retry)
@@ -83,9 +74,9 @@ public enum AutoFormatterChoice {
 ///  4. dictionary replacements        5. phonetic spelling snap to dictionary terms, then the
 ///                                       opt-in context-name snap (one `SpellingSnapper` pass)
 ///  6. snippets (whole utterance; a hit skips 7–9)
-///  7. cleanup: RuleCleaner + spoken numbers (default) OR AI formatting (user / auto list cues),
-///     dictionary re-applied after the model
-///  8. backtrack (opt-in, on the cleaned text)   9. per-app style (first capital, final stop)
+///  7. hesitation + spoken numbers; Light/Medium: stutter, punctuation, discard, backtrack,
+///     then guarded on-device semantic cleanup; dictionary re-applied after the model
+///  8. retain deterministic backtrack Undo source   9. per-app style (first capital, final stop)
 /// 10. gates (Wispr Flow conflict, secure input, focus)   11. smart join   12. insert
 /// 13. auto-send (Shift at release)  14. learning watcher (`onInserted`) and the Undo offer
 /// Esc / triple-tap cancel (`cancelDictation`) is checked after 1, after 2, after 7 and right
@@ -108,7 +99,14 @@ public final class DictationPipeline {
     public private(set) var recordingCue: RecordingCue = .live
 
     @ObservationIgnored public private(set) var transcriber: Transcriber
-    @ObservationIgnored public var cleaner: TextCleaner
+    @ObservationIgnored public var useOnDeviceAI: @MainActor () -> Bool = { true }
+    @ObservationIgnored public var cleanupContextReader: CaretContextReading?
+    @ObservationIgnored public var cleanupLevel: @MainActor () -> CleanupLevel = { .light }
+    @ObservationIgnored public var spokenPunctuationEnabled: @MainActor () -> Bool = { true }
+    /// Shares the caret reader's app exclusion policy, including the user's denylist.
+    @ObservationIgnored public var cleanupContextAllowed: @MainActor (FrontmostApp) -> Bool = { _ in true }
+    /// Optional model cleanup after the deterministic rule layer; nil selects rules only.
+    @ObservationIgnored public var cleaner: FoundationModelsCleaner?
     @ObservationIgnored public var history: HistoryWriting
     /// MAXIMUM capture after Fn-up so the last word isn't clipped. 400 ms: history showed speech
     /// running to the very last sample with 200 ms ("at the moment" → "on the mount"). The tail is
@@ -124,9 +122,7 @@ public final class DictationPipeline {
                                          silence: Self.tailSilence)
                      : .fixed(captureTail)
     }
-    /// AUTO formatting: the FM formatter used for list-cue utterances while the user's
-    /// "AI formatting" setting is OFF (`cleaner` is the RuleCleaner). See `CleanupPolicy`.
-    @ObservationIgnored public var autoFormatter: TextCleaner?
+    /// Used when an injected RuleCleaner needs the semantic model at Light/Medium.
     @ObservationIgnored public var asrTimeout: Duration = .seconds(15)
     /// CC-7 (STRUCTURAL) recording caps, measured from the start of the recording. At the cap
     /// the recording is committed (as on a release); from `recordingLimitWarning` before it the
@@ -190,8 +186,8 @@ public final class DictationPipeline {
     /// Per-app writing style for the target's bundle ID (`FinalPasses`); nil = no style. The app
     /// wires Settings › Writing here; the default (no style) keeps the pipeline verbatim.
     @ObservationIgnored public var styleFor: @MainActor (String?) -> WritingStyle? = { _ in nil }
-    /// Backtrack ("2, actually 3" → "3"). OFF unless the app wires the user's opt-in.
-    @ObservationIgnored public var backtrackEnabled: @MainActor () -> Bool = { false }
+    /// Backtrack ("2, actually 3" → "3"). ON for Light/Medium unless explicitly disabled.
+    @ObservationIgnored public var backtrackEnabled: @MainActor () -> Bool = { true }
     @ObservationIgnored public var nameRecognizer: NameRecognizing = NLNameRecognizer()
     /// The latest inserted backtrack, undoable from the HUD (`undoLastCorrection`).
     @ObservationIgnored public private(set) var pendingCorrection: PendingCorrection?
@@ -259,23 +255,16 @@ public final class DictationPipeline {
     public var isModelLoading: Bool { !modelReady && modelError == nil }
 
     public init(audio: AudioCapturing, trimmer: SpeechTrimmer, transcriber: Transcriber,
-                dictionary: DictionaryStore, cleaner: TextCleaner, gate: InsertionGate,
+                dictionary: DictionaryStore, cleaner: FoundationModelsCleaner?, gate: InsertionGate,
                 secureInput: SecureInputChecking = SystemSecureInput(),
                 clipboard: ClipboardWriting = SystemClipboard(),
                 inserterFor: @escaping @MainActor (String?) -> (TextInserter, InsertionStrategy),
                 history: HistoryWriting, frontmostApp: @escaping @MainActor () -> FrontmostApp?,
                 caretReader: CaretContextReading = AXCaretContextReader(),
                 debugRecordings: DebugRecordingStore? = DebugRecordingStore(),
-                autoFormatter: AutoFormatterChoice = .system,
                 languageDetector: LanguageDetecting = NLLanguageDetector()) {
         self.caretReader = caretReader
         self.languageDetector = languageDetector
-        switch autoFormatter {
-        case .none: self.autoFormatter = nil
-        case .custom(let c): self.autoFormatter = c
-        case .system:
-            self.autoFormatter = FoundationModelsCleaner(vocabulary: { [dictionary] in dictionary.dictionary.vocabulary })
-        }
         self.debugRecordings = debugRecordings
         self.audio = audio; self.trimmer = trimmer; self.transcriber = transcriber
         self.dictionary = dictionary; self.cleaner = cleaner; self.gate = gate
@@ -439,8 +428,9 @@ public final class DictationPipeline {
                     }
                     self.armSoundExclusion()
                     self.armRecordingLimit(handsFree: self.status == .recording(handsFree: true))
-                    self.cleaner.prepareForDictation()
-                    if !self.userFormattingEnabled { self.autoFormatter?.prepareForDictation() }
+                    if self.cleanupLevel() != .verbatim && self.useOnDeviceAI() {
+                        self.cleaner?.prepareForDictation(level: self.cleanupLevel())
+                    }
                 case .failure(let error):
                     self.disarmRecordingLimit()
                     self.recordingFocus = nil
@@ -591,7 +581,7 @@ public final class DictationPipeline {
             recordingTranscriber = nil
             soundExclusion = nil
             level = 0
-            var entry = HistoryEntry(engine: transcriber.engineName, cleaner: cleaner.name, audioDuration: duration,
+            var entry = HistoryEntry(engine: transcriber.engineName, cleaner: cleaner?.name ?? "rules", audioDuration: duration,
                                      frontmostApp: target?.bundleID, outcome: .cancelled)
             entry.latencies.keyDownToHUDMs = recordingCapture.keyDownToHUDMs
             entry.latencies.keyDownToCaptureMs = recordingCapture.keyDownToCaptureMs
@@ -733,8 +723,6 @@ public final class DictationPipeline {
         }
     }
 
-    /// The configured cleaner is the user's FM formatter ("AI formatting" ON).
-    var userFormattingEnabled: Bool { !(cleaner is RuleCleaner) }
 
     var dictionaryForTesting: DictionaryStore { dictionary }
     static let rules = RuleCleaner()
@@ -764,7 +752,7 @@ public final class DictationPipeline {
                         noAudio: Bool = false) async -> HistoryEntry {
         let sr = AudioConstants.sampleRate
         let transcriber = engine ?? self.transcriber
-        var entry = HistoryEntry(engine: transcriber.engineName, cleaner: cleaner.name,
+        var entry = HistoryEntry(engine: transcriber.engineName, cleaner: cleaner?.name ?? "rules",
                                  audioDuration: Double(samples.count) / sr, frontmostApp: target?.bundleID,
                                  outcome: .noSpeech)
         entry.voiceProcessingActive = voiceProcessing
@@ -965,38 +953,42 @@ public final class DictationPipeline {
             content.snippetTrigger = sn.trigger
             entry.cleaner = "snippet"
         } else {
-            // 7. Cleanup: RuleCleaner + spoken numbers (default) OR AI formatting. CleanupPolicy (STRUCTURAL): the FM formatter only runs when the user
-            // enabled it, or — auto mode — when the utterance has deterministic list cues.
+            // 7. Deterministic edits first, then validated edit-plan cleanup (local only).
             t0 = clock.now
-            let decision = CleanupPolicy.decide(text: replaced, userEnabled: userFormattingEnabled,
-                                                autoAvailable: autoFormatter != nil)
+            let level = cleanupLevel()
+            let vocab = dictionary.dictionary.vocabulary + (nameContext?.candidates.map(\.surface) ?? [])
+            let beforeCorrection = Self.rules.cleanSync(replaced, vocabulary: vocab, level: level, spokenPunctuation: spokenPunctuationEnabled(), backtrack: false)
+            let rules = level != .verbatim && backtrackEnabled() ? Backtrack.apply(beforeCorrection).text : beforeCorrection
             let outcome: CleanupOutcome
-            if case .autoModel(let cue) = decision, let auto = autoFormatter {
-                var o = await auto.cleanDetailed(replaced)
-                o.verdict = "auto(\(cue)):" + (o.verdict ?? "")
-                outcome = o
-            } else if let rules = cleaner as? RuleCleaner {
-                // AI formatting OFF (the default): the deterministic pre-pass still gets the
-                // user's dictionary terms, so "<term> six point one" → "<term> 6.1".
-                outcome = CleanupOutcome(text: rules.cleanSync(replaced, vocabulary: dictionary.dictionary.vocabulary),
-                                         producedBy: rules.name)
+            if level != .verbatim, useOnDeviceAI(), let fm = cleaner {
+                let caret = if let reader = cleanupContextReader, let target { await reader.read(pid: target.pid, bundleID: target.bundleID) } else { await caretTask?.value }
+                let allow = target.map(cleanupContextAllowed) == true && !secureInput.isSecureInputActive
+                let context = CleanupContext(category: allow ? target.map { AppCategoryMap.category(for: $0.bundleID).rawValue } : nil,
+                                             style: allow ? styleFor(target?.bundleID)?.rawValue : nil,
+                                             preceding: allow ? caret?.preceding : nil,
+                                             spellings: allow ? (nameContext?.candidates.map(\.surface) ?? []) : [])
+                outcome = await fm.cleanDetailed(replaced, level: level, context: context,
+                                                 spokenPunctuation: spokenPunctuationEnabled(), backtrack: backtrackEnabled(), deterministicText: rules)
             } else {
-                outcome = await cleaner.cleanDetailed(replaced)
+                outcome = CleanupOutcome(text: rules, producedBy: "rules")
             }
             timings.cleanupMs = ms(clock.now - t0)
             entry.cleaner = outcome.producedBy
             content.cleanupVerdict = outcome.verdict
             content.cleanupCandidate = outcome.candidate
+            content.cleanupSpanVerdicts = outcome.spanVerdicts
             entry.cleanupModelMs = outcome.modelMs
-            // The LLM may undo a replacement spelling; re-applying is idempotent.
-            final = outcome.producedBy == "fm" ? dictionary.apply(to: outcome.text) : outcome.text
+            // Only dictionary replacements follow accepted model edits; screen hints never recase text.
+            final = outcome.producedBy == "rules" ? outcome.text : dictionary.apply(to: outcome.text)
             if cancelledNow() { finish(); return entry }  // Esc during a (slow) AI-formatting pass
-            // 8–9. Final deterministic passes (English only): backtrack (opt-in), then the
-            // per-app style, which only changes the first letter's case and a trailing full stop.
-            let passes = FinalPasses.apply(final, style: styleFor(target?.bundleID), backtrack: backtrackEnabled(),
+            // 8–9. Retain the pre-backtrack source for Undo, then apply the per-app style.
+            let deterministicCorrection = level != .verbatim && backtrackEnabled() && Backtrack.apply(beforeCorrection).applied
+            let passes = FinalPasses.apply(final, style: styleFor(target?.bundleID), backtrack: false,
                                            vocabulary: dictionary.dictionary.vocabulary, names: nameRecognizer)
             final = passes.text
-            uncorrected = passes.uncorrected
+            uncorrected = deterministicCorrection
+                ? FinalPasses.apply(beforeCorrection, style: styleFor(target?.bundleID), backtrack: false,
+                                    vocabulary: vocab, names: nameRecognizer).text : nil
             entry.style = passes.style?.rawValue
             if uncorrected != nil { entry.backtrackApplied = true }
         }

@@ -20,12 +20,12 @@ import Testing
         let env = PipelineEnv(text: "Send the report now.", speech: true, transcriber: nil)
         let gated = GatedInserter(pasteFirst: pasteFirst)
         let p = DictationPipeline(audio: env.audio, trimmer: FakeTrimmer(), transcriber: env.transcriber,
-                                  dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                  dictionary: tempDictionary(), cleaner: nil,
                                   gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                                   secureInput: env.secure, clipboard: env.clipboard,
                                   inserterFor: { _ in (gated, .paste) }, history: env.history,
                                   frontmostApp: { FrontmostApp(pid: 42, bundleID: "com.apple.TextEdit") },
-                                  caretReader: env.caret, debugRecordings: nil, autoFormatter: .none)
+                                  caretReader: env.caret, debugRecordings: nil)
         p.onNotice = { [unowned env] in env.notices.append($0) }
         p.focusProbe = env.focus
         p.captureTail = .zero
@@ -272,12 +272,12 @@ import Testing
                                       verifier: Verifier(states), target: { target })
             paste.verifyDelay = .zero
             let p = DictationPipeline(audio: env.audio, trimmer: FakeTrimmer(), transcriber: env.transcriber,
-                                      dictionary: tempDictionary(), cleaner: RuleCleaner(),
+                                      dictionary: tempDictionary(), cleaner: nil,
                                       gate: ConflictDetector(runningApps: { [] }, fnUsageReader: { 0 }),
                                       secureInput: env.secure, clipboard: env.clipboard,
                                       inserterFor: { _ in (paste, .paste) }, history: env.history,
                                       frontmostApp: { FrontmostApp(pid: 42, bundleID: target.bundleID) },
-                                      caretReader: env.caret, debugRecordings: nil, autoFormatter: .none)
+                                      caretReader: env.caret, debugRecordings: nil)
             p.onNotice = { [unowned env] in env.notices.append($0) }
             env.focus.preceding = { "Coffee at 3." }
             p.focusProbe = env.focus
