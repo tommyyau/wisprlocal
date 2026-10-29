@@ -17,11 +17,17 @@ public struct FrontmostApp: Sendable, Equatable {
 /// Secure Event Input (password fields, some terminals). While on, we neither record nor insert.
 public protocol SecureInputChecking: Sendable {
     var isSecureInputActive: Bool { get }
+    @MainActor var blockingNotice: String { get }
+}
+
+extension SecureInputChecking {
+    @MainActor public var blockingNotice: String { PipelineNotice.secureInput }
 }
 
 public struct SystemSecureInput: SecureInputChecking {
     public init() {}
     public var isSecureInputActive: Bool { IsSecureEventInputEnabled() }
+    @MainActor public var blockingNotice: String { SecureInputDiagnosis.current().notice }
 }
 
 /// Where the text goes when we must not paste (focus changed).

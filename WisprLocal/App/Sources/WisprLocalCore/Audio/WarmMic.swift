@@ -70,6 +70,7 @@ public final class WarmMicController {
     public func dictationFinished() { arm() }
 
     public func settingsChanged() {
+        captureLiveBlockers()
         syncStopIntent()
         if !canArm {
             if isWarm { drop(.settingOff) }
@@ -123,19 +124,30 @@ public final class WarmMicController {
 
     // MARK: -
 
-    /// The conflict closure is read directly too (a cached flag), so a dictation finishing just
-    /// as Wispr Flow appears can't re-arm before the next tick records the blocker.
-    private var canArm: Bool { blockers.isEmpty && !isConflictActive() && (keepReady() || alwaysReady()) }
+    /// Read both live gates before arming: startup, settings changes and dictation completion
+    /// can happen before the next polling tick has recorded a new blocker.
+    private var canArm: Bool {
+        blockers.isEmpty && !isSecureInputActive() && !isConflictActive() && (keepReady() || alwaysReady())
+    }
 
     private func updateBlocker(_ r: Reason, _ active: Bool) {
         if active, !blockers.contains(r) { block(r) }
         else if !active, blockers.contains(r) { clear(r) }
     }
 
+    /// Remember a lock even if it clears before the first timer tick, so Always on can
+    /// re-arm when the tick observes it clearing. Also drop an existing warm ring now.
+    private func captureLiveBlockers() {
+        if isSecureInputActive(), !blockers.contains(.secureInput) { block(.secureInput) }
+        if isConflictActive(), !blockers.contains(.conflict) { block(.conflict) }
+    }
+
     /// The recorder keeps the engine running after a stop only while warm mode is allowed.
     private func syncStopIntent() { audio.keepWarmAfterStop = canArm }
 
     private func arm() {
+        captureLiveBlockers()
+        syncStopIntent()
         guard canArm else { return }
         let next: Mode = alwaysReady() ? .always : .window(until: now().addingTimeInterval(MicWarmPolicy.window))
         do { try audio.enterWarm() } catch {

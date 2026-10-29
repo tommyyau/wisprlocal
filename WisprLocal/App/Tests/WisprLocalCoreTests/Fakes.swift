@@ -102,6 +102,7 @@ final class FakeTranscriber: Transcriber, Sendable {
 final class FakeSecureInput: SecureInputChecking, @unchecked Sendable {
     var active = false
     var isSecureInputActive: Bool { active }
+    var blockingNotice: String = PipelineNotice.secureInput
 }
 
 @MainActor final class FakeClipboard: ClipboardWriting {

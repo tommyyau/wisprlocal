@@ -24,12 +24,13 @@ public enum ChipCopy {
 /// What a chip's buttons do. The app maps each to its button (`HUDButton`); the titles live here
 /// so the verb style is one list: one word where possible, sentence case ("Not now").
 public enum HUDChipAction: String, CaseIterable, Sendable {
-    case seeWhy, micSettings, undoCorrection, copyOriginal, addWord, notNow, showIndicator
+    case seeWhy, micSettings, secureInputHelp, undoCorrection, copyOriginal, addWord, notNow, showIndicator
 
     public var title: String {
         switch self {
         case .seeWhy: return "See why"
         case .micSettings: return "Settings"
+        case .secureInputHelp: return "Help"
         case .undoCorrection: return "Undo"
         case .copyOriginal: return "Copy original"
         case .addWord: return "Add"
@@ -71,6 +72,7 @@ public enum HUDChipPolicy {
     public static func seconds(actions: [HUDChipAction]) -> Double { actions.isEmpty ? secondsInformational : secondsWithButtons }
 
     public static func actions(for text: String) -> [HUDChipAction] {
+        if text.hasPrefix(PipelineNotice.secureInput) || text.hasPrefix(SecureInputDiagnosis.noticePrefix) { return [.secureInputHelp] }
         if text.hasPrefix(PipelineNotice.didntCatchPrefix) { return [.seeWhy] }
         if text == PipelineNotice.micCuttingOut { return [.micSettings] }
         if text == PipelineNotice.corrected { return [.undoCorrection] }
@@ -85,7 +87,7 @@ public enum HUDChipPolicy {
         PipelineNotice.asrTimedOut, PipelineNotice.pasteNotConfirmed,
         PipelineNotice.micCuttingOut,
     ]
-    static let alertPrefixes = [PipelineNotice.didntCatchPrefix, "Speech model unavailable", "Transcription failed"]
+    static let alertPrefixes = [PipelineNotice.didntCatchPrefix, SecureInputDiagnosis.noticePrefix, PipelineNotice.secureInput, "Speech model unavailable", "Transcription failed"]
 
     public static func priority(for text: String) -> HUDChipPriority {
         if alertTexts.contains(text) || alertPrefixes.contains(where: text.hasPrefix) { return .alert }

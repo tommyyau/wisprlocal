@@ -149,6 +149,39 @@ import Foundation
         #expect(a.enters == 0 && !w.isWarm && a.keepWarmAfterStop)
     }
 
+    @Test func secureInputBeforeFirstTickPreventsAlwaysReadyStartup() {
+        let (w, a, _, probes) = make(always: true, vp: true)
+        probes.secure.on = true
+        w.start()
+        #expect(!a.warm && a.enters == 0 && !a.keepWarmAfterStop)
+        probes.secure.on = false
+        w.tick()
+        #expect(w.mode == .always && a.warm && a.keepWarmAfterStop)
+    }
+
+    @Test func secureInputDuringCompletionDropsAnExistingWarmRingBeforePolling() {
+        let (w, a, _, probes) = make(always: true, vp: true)
+        w.start()
+        probes.secure.on = true
+        w.dictationFinished()
+        #expect(!w.isWarm && !a.warm && !a.keepWarmAfterStop)
+        #expect(w.lastDrop == .secureInput && w.blockers.contains(.secureInput))
+        probes.secure.on = false
+        w.tick()
+        #expect(w.mode == .always && a.warm)
+    }
+
+    @Test func secureInputBeforeNextTickPreventsPostDictationWarmup() {
+        let (w, a, _, probes) = make(vp: true)
+        probes.secure.on = true
+        w.dictationFinished()
+        #expect(a.enters == 0 && !a.warm && !a.keepWarmAfterStop)
+        probes.secure.on = false
+        w.tick() // A recorded privacy blocker stays latched until its clear is observed.
+        w.dictationFinished()
+        #expect(a.enters == 1 && a.warm && a.keepWarmAfterStop)
+    }
+
     @Test func windowAfterDictationThenExpiryStopsEngine() {
         let (w, a, c, _) = make()
         #expect(a.keepWarmAfterStop, "recorder stays running after a stop while allowed")

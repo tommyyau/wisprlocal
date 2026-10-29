@@ -4,6 +4,8 @@ All notable changes to WisprLocal are recorded here. The format follows [Keep a 
 
 ## Unreleased
 
+- Identify the app holding macOS Secure Input and provide recovery help instead of assuming the current field is a password. Keep recording/insertion protection intact, and check Secure Input before arming microphone readiness. Explain cold-start latency with noise reduction and the Always on readiness option.
+
 - Fix repeated commas when speech recognition punctuates a spoken comma command. Absorb matching punctuation around converted commands while preserving unrelated punctuation and noun uses; cover rule cleanup, model projection and final insertion with AI enabled and disabled.
 
 - Phase A round 6: preserve existing input terminators and commas; block new sentence endings inside negation or auxiliary/verb continuations. Require incomplete false starts and protect parallel clauses, names and terms; compare subject predicates for explicit corrections. Return the exact rule floor for low alignment or mostly restored omissions. Share the short-input deletion budget and unfinished-placement check; render lists with an optional header; recognize spoken “period” after -ing/-al words at sentence boundaries. Record `llm-projected` and final accepted/restored span counts. Remove the whole-plan validator and injected-cleaner guard, test at the model boundary, and move strict latency gates into the opt-in benchmark while retaining 100 ms regression bounds.

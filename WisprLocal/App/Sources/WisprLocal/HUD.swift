@@ -354,6 +354,7 @@ final class HUDController {
     }
 
     static func symbol(forNotice s: String) -> String {
+        if s.hasPrefix(SecureInputDiagnosis.noticePrefix) || s.hasPrefix(PipelineNotice.secureInput) { return "lock.fill" }
         if s.hasPrefix(PipelineNotice.recordingLimitPrefix) { return "timer" }
         if s.hasPrefix(PipelineNotice.escapeAgainPrefix) { return "escape" }
         if s == PipelineNotice.cancelled { return "xmark.circle.fill" }
@@ -434,6 +435,17 @@ final class HUDController {
         case .micSettings:
             WindowManager.shared.model(for: controller).settingsRequest = .tab(.microphone)
             WindowManager.shared.showMain(controller: controller, section: .settings)
+        case .secureInputHelp:
+            let diagnosis = SecureInputDiagnosis.current()
+            let alert = NSAlert()
+            alert.messageText = diagnosis.isActive ? "Secure Input is blocking dictation" : "Secure Input has cleared"
+            alert.informativeText = diagnosis.recoveryMessage
+            let owner = diagnosis.ownerPID.flatMap { NSRunningApplication(processIdentifier: $0) }
+            if let owner, !owner.isTerminated { alert.addButton(withTitle: "Open app") }
+            alert.addButton(withTitle: "OK")
+            if alert.runModal() == .alertFirstButtonReturn, let owner, !owner.isTerminated {
+                owner.activate()
+            }
         case .undoCorrection:
             let pipeline = controller.pipeline
             Task { await pipeline.undoLastCorrection() }

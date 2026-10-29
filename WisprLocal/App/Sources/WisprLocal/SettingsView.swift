@@ -241,6 +241,12 @@ struct MicrophoneSettings: View {
                 ChoiceMenu(selection: model.micReadiness, options: MicReadiness.allCases, title: \.title,
                            label: "Microphone readiness", width: 250, choose: model.setMicReadiness)
             }
+            if model.settings.voiceProcessingEnabled && model.micReadiness != .always {
+                Text("Noise reduction adds a delay when the microphone starts cold. For immediate starts after longer pauses, choose Always on. The orange microphone indicator stays on while ready.")
+                    .font(Theme.Typo.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, Theme.Space.m)
+            }
             SpeechModelRow(model: model)
         }
         .sheet(isPresented: $testing) { MicCheckSheet(model: model) { testing = false } }

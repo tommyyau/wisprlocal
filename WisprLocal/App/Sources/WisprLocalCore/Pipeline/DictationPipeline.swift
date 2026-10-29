@@ -34,7 +34,7 @@ public enum PipelineNotice {
     public static func switchingModel(to v: ASRModelVariant) -> String {
         v == .parakeetUltra ? "Switching to Noisy room model…" : "Switching to English model…"
     }
-    public static let secureInput = "Secure input active (password field) — dictation disabled"
+    public static let secureInput = SecureInputDiagnosis.genericNotice
     /// SEC-4: the paired receiver Mac has a password field focused; text was not inserted (the receiver refused it).
     public static let remoteSecureInput = "Remote Mac has a password field focused — not inserted"
     public static let asrTimedOut = "Transcription timed out — please try again"
@@ -381,7 +381,7 @@ public final class DictationPipeline {
                 return
             }
             guard !secureInput.isSecureInputActive else {
-                onNotice?(PipelineNotice.secureInput)
+                onNotice?(secureInput.blockingNotice)
                 onGestureReset?()
                 return
             }
@@ -1011,7 +1011,7 @@ public final class DictationPipeline {
         // 10b. Secure input gate (STRUCTURAL).
         if secureInput.isSecureInputActive {
             entry.outcome = .blockedBySecureInput
-            notice(PipelineNotice.secureInput)
+            notice(secureInput.blockingNotice)
             finish(); return entry
         }
         // 10c. Focus guard (STRUCTURAL): only paste into the app that was frontmost at start.
@@ -1148,7 +1148,7 @@ public final class DictationPipeline {
             switch blocked.reason {
             case .secureInput:
                 entry.outcome = .blockedBySecureInput
-                notice(PipelineNotice.secureInput + progress)
+                notice(secureInput.blockingNotice + progress)
             case .conflict(let reason):
                 entry.outcome = .blockedByConflict
                 entry.note = reason
@@ -1163,7 +1163,7 @@ public final class DictationPipeline {
                 notice(PipelineNotice.focusChanged)
             case .secureInput:
                 entry.outcome = .blockedBySecureInput
-                notice(PipelineNotice.secureInput)
+                notice(secureInput.blockingNotice)
             case .conflict(let reason):
                 entry.outcome = .blockedByConflict
                 entry.note = reason
@@ -1229,7 +1229,7 @@ public final class DictationPipeline {
         guard currentDate().timeIntervalSince(c.at) <= PendingCorrection.window,
               !status.isRecording, pendingJobs == 0 else { return false }
         guard gate.insertionBlockReason() == nil else { onBlockedByConflict?(); return false }
-        guard !secureInput.isSecureInputActive else { onNotice?(PipelineNotice.secureInput); return false }
+        guard !secureInput.isSecureInputActive else { onNotice?(secureInput.blockingNotice); return false }
         let front = frontmostApp()
         guard front?.pid == c.pid else {
             clipboard.setString(c.spoken)
@@ -1288,7 +1288,7 @@ public final class DictationPipeline {
             onNotice?(PipelineNotice.nothingToPasteAgain); return false
         }
         guard gate.insertionBlockReason() == nil else { onBlockedByConflict?(); return false }
-        guard !secureInput.isSecureInputActive else { onNotice?(PipelineNotice.secureInput); return false }
+        guard !secureInput.isSecureInputActive else { onNotice?(secureInput.blockingNotice); return false }
         let front = frontmostApp()
         let (inserter, _) = inserterFor(front?.bundleID)
         do { try await insert(text, using: inserter, target: front) } catch {
